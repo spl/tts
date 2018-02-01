@@ -42,11 +42,6 @@ inductive lc : exp V → Prop
   | lam  : Π {L : finset V} {e : exp V},             (∀ x : V, x ∉ L → lc (e.open_var x)) →  lc (lam e)
   | let_ : Π {L : finset V} {e₁ e₂ : exp V}, lc e₁ → (∀ x : V, x ∉ L → lc (e₂.open_var x)) → lc (let_ e₁ e₂)
 
-/-
-Definition term_body t :=
-  exists L, forall x, x ∉ L -> term (t ^ x).
--/
-
 def lc_body (e : exp V) : Prop :=
   ∃ L : finset V, ∀ x : V, x ∉ L → lc (e.open_var x)
 
