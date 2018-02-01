@@ -7,8 +7,8 @@ variables {V : Type} -- Type of variable names
 
 -- Grammar of types
 inductive typ (V : Type) : Type
-  | bvar {} : ℕ → typ          -- bound variable
-  | fvar    : V → typ          -- free variable
+  | varb {} : ℕ → typ          -- bound variable
+  | varf    : V → typ          -- free variable
   | arr     : typ → typ → typ  -- function arrow
 
 open typ
@@ -16,20 +16,20 @@ open typ
 -- Open a type with a list of expressions for bound variables
 protected
 def typ.open (ts : list (typ V)) : typ V → typ V
-  | (bvar i)    := (ts.nth i).get_or_else (bvar 0)
-  | (fvar x)    := fvar x
+  | (varb i)    := (ts.nth i).get_or_else (varb 0)
+  | (varf x)    := varf x
   | (arr t₁ t₂) := arr t₁.open t₂.open
 
 -- Open a type with a list of free variables for bound variables
 protected
 def typ.open_vars (vs : list V) : typ V → typ V :=
-  typ.open (vs.map fvar)
+  typ.open (vs.map varf)
 
 namespace typ ------------------------------------------------------------------
 
 -- Property of a locally-closed type
 inductive lc : typ V → Prop
-  | fvar : Π (x : V),         lc (fvar x)
+  | varf : Π (x : V),         lc (varf x)
   | arr  : Π {t₁ t₂ : typ V}, lc (arr t₁ t₂)
 
 def lc_types (n : ℕ) (l : list (typ V)) : Prop :=
