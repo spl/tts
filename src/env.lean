@@ -1,11 +1,12 @@
-import .typ
+import .sch
 import data.finset
 
 namespace tts ------------------------------------------------------------------
-variables {V : Type} -- Type of variable names
 
 def env (V : Type) : Type :=
   list (V × sch V)
+
+variables {V : Type} [decidable_eq V] -- Type of variable names
 
 namespace env ------------------------------------------------------------------
 
@@ -23,6 +24,10 @@ def one (x : V) (s : sch V) : env V :=
 
 def add (x : V) (s : sch V) (Γ : env V) : env V :=
    one x s ++ Γ
+
+-- Get the free variables of an environment.
+def fv (Γ : env V) : finset V :=
+  list.foldr (λ (p : V × sch V) (vs : finset V), p.snd.fv ∪ vs) ∅ Γ
 
 def dom [decidable_eq V] (Γ : env V) : finset V :=
   list.to_finset (list.map prod.fst Γ)

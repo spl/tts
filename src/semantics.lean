@@ -1,7 +1,7 @@
 import .exp
 
 namespace tts ------------------------------------------------------------------
-variables {V : Type}  -- Type of variable names
+variables {V : Type} [decidable_eq V] [finset.has_fresh V] -- Type of variable names
 
 open exp
 

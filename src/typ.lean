@@ -1,33 +1,51 @@
-import .fresh
 import .list
 import data.finset
 
 namespace tts ------------------------------------------------------------------
-variables {V : Type} -- Type of variable names
 
--- Grammar of types
+-- Grammar of types.
 inductive typ (V : Type) : Type
   | varb {} : ℕ → typ          -- bound variable
   | varf    : V → typ          -- free variable
   | arr     : typ → typ → typ  -- function arrow
 
+variables {V : Type} [decidable_eq V] -- Type of variable names
+
+namespace typ ------------------------------------------------------------------
+
+-- Get the free variables of a type.
+def fv : typ V → finset V
+  | (varb i)    := ∅
+  | (varf x)    := {x}
+  | (arr t₁ t₂) := fv t₁ ∪ fv t₂
+
+-- Substitute a free variable for a type in a type.
+def subst (y : V) (t : typ V) : typ V → typ V
+  | (varb i)    := varb i
+  | (varf x)    := if x = y then t else varf x
+  | (arr t₁ t₂) := arr (subst t₁) (subst t₂)
+
+end /- namespace -/ typ --------------------------------------------------------
+
 open typ
 
--- Open a type with a list of expressions for bound variables
+-- Open a type with a list of expressions for bound variables.
+-- Note: This definition is defined outside the `typ` namespace because it
+-- conflicts with the keyword `open` if declared without the `typ`. prefix.
 protected
 def typ.open (ts : list (typ V)) : typ V → typ V
   | (varb i)    := (ts.nth i).get_or_else (varb 0)
   | (varf x)    := varf x
   | (arr t₁ t₂) := arr t₁.open t₂.open
 
--- Open a type with a list of free variables for bound variables
-protected
-def typ.open_vars (vs : list V) : typ V → typ V :=
-  typ.open (vs.map varf)
-
 namespace typ ------------------------------------------------------------------
 
--- Property of a locally-closed type
+-- Open a type with a list of free variables for bound variables.
+protected
+def open_vars (vs : list V) (t : typ V) : typ V :=
+  t.open (vs.map varf)
+
+-- Property of a locally-closed type.
 inductive lc : typ V → Prop
   | varf : Π (x : V),         lc (varf x)
   | arr  : Π {t₁ t₂ : typ V}, lc (arr t₁ t₂)
@@ -36,32 +54,4 @@ def lc_types (n : ℕ) (l : list (typ V)) : Prop :=
   n = l.length ∧ l.all_prop lc
 
 end /- namespace -/ typ --------------------------------------------------------
-
--- Grammar of type schemes
-structure sch (V : Type) : Type :=
-  (arity : ℕ)
-  (type : typ V)
-
--- Open a type scheme with a list of expressions for bound variables
-protected
-def sch.open (ts : list (typ V)) (s : sch V) : typ V :=
-  s.type.open ts
-
--- Open a type scheme with a list of free variables for bound variables
-protected
-def sch.open_vars (vs : list V) (s : sch V) : typ V :=
-  s.type.open_vars vs
-
-namespace sch ------------------------------------------------------------------
-variable [has_insert V (finset V)]
-
--- Property of a scheme body
-def body (n : ℕ) (t : typ V) : Prop :=
-  ∃ (vs : finset V), ∀ (xs : list V), fresh vs n xs → (t.open_vars xs).lc
-
--- Property of a well-formed scheme
-def well_formed (s : sch V) : Prop :=
-  body s.arity s.type
-
-end /- namespace -/ sch --------------------------------------------------------
 end /- namespace -/ tts --------------------------------------------------------
