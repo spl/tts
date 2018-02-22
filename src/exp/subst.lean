@@ -3,10 +3,9 @@ import .fv
 namespace tts ------------------------------------------------------------------
 namespace exp ------------------------------------------------------------------
 
-variables {V : Type} [decidable_eq V] [finset.has_fresh V] -- Type of variable names
+variables {V : Type} [decidable_eq V] -- Type of variable names
 
 -- Substitute a free variable for an expression in an expression
-@[simp]
 def subst (x : V) (e : exp V) : exp V → exp V
   | (varb i)     := varb i
   | (varf y)     := if x = y then e else varf y

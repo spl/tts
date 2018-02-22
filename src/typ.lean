@@ -9,9 +9,10 @@ inductive typ (V : Type) : Type
   | varf    : V → typ          -- free variable
   | arr     : typ → typ → typ  -- function arrow
 
-variables {V : Type} [decidable_eq V] -- Type of variable names
+variables {V : Type} -- Type of variable names
 
 namespace typ ------------------------------------------------------------------
+variables [decidable_eq V]
 
 -- Get the free variables of a type.
 def fv : typ V → finset V

@@ -1,7 +1,7 @@
 import .type
 import data.finset.extra
 
-variables {V : Type} [decidable_eq V] [finset.has_fresh V] -- Type of variable names
+variables {V : Type} -- Type of variable names
 
 namespace tts ------------------------------------------------------------------
 namespace exp ------------------------------------------------------------------
@@ -78,6 +78,8 @@ lemma open_lc.core {e₁ e₂ e₃ : exp V} {k₂ k₃ : ℕ} (p : k₂ ≠ k₃
       conv {to_lhs, rw [rd p hd, rb (mt nat.succ.inj p) hb]}
     }
   end
+
+variables [finset.has_fresh V]
 
 lemma open_lc.rec {e₁ e₂ : exp V} {k : ℕ} (l : lc e₁) : open.rec e₂ k e₁ = e₁ :=
   begin

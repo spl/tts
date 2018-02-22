@@ -13,7 +13,7 @@ lemma subst_open.rec {x : V} {k : ℕ} {ex e₁ e₂ : exp V} (lx : lc ex)
     case exp.varb : i {
       by_cases h : k = i,
       {/- h : k = i -/ simp [h]},
-      {/- h : k ≠ i -/ simp [h]}
+      {/- h : k ≠ i -/ simp [h, subst]}
     },
     case exp.varf : y {
       by_cases h : x = y,

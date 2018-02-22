@@ -1,404 +1,303 @@
 import .defs
-import data.multiset.extra
+import .binding_list
 
 namespace tts ------------------------------------------------------------------
 namespace env ------------------------------------------------------------------
 
-variables {V : Type} [decidable_eq V] -- Type of variable names
+variables {V : Type} -- Type of variable names
 variables {x x₁ x₂ : V} -- Variable names
 variables {s s₁ s₂ : sch V} -- Type schemes
 variables {fs : sch V → sch V} -- Type scheme function
-variables {b : V × sch V} -- Bindings
+variables {b b₁ b₂ : binding V} -- Bindings
+
+-- Use notation to avoid ambiguity.
+local notation `∅` := has_emptyc.emptyc (env V)
+local notation `singleton` := @singleton (binding V) (env V) _ _
+
+section conversions ------------------------------------------------------------
+variables {Γ Γ₁ Γ₂ Γ₃ : list (binding V)} -- Binding lists
+
+private
+theorem conv.binding : binding.map fs b = (b.var :~ fs (b.sch)) :=
+  by cases b; simp
+
+private
+theorem conv.empty : has_emptyc.emptyc (env V) = env.mk [] :=
+  rfl
+
+private
+theorem conv.insert : insert b (env.mk Γ) = env.mk (b :: Γ) :=
+  rfl
+
+private
+theorem conv.one : one b = env.mk (b :: []) :=
+  rfl
+
+private
+theorem conv.append : env.mk Γ₁ ++ env.mk Γ₂ = env.mk (Γ₁ ++ Γ₂) :=
+  rfl
+
+private
+theorem conv.mem : b ∈ env.mk Γ = (b ∈ Γ) :=
+  rfl
+
+private
+theorem conv.map : map fs (env.mk Γ) = env.mk (Γ.map (binding.map fs)) :=
+  rfl
+
+variables [decidable_eq V]
+
+private
+theorem conv.dom : dom (env.mk Γ) = binding_list.dom Γ :=
+  rfl
+
+private
+theorem conv.disjoint : disjoint (env.mk Γ₁) (env.mk Γ₂) = binding_list.disjoint Γ₁ Γ₂ :=
+  rfl
+
+private
+theorem conv.uniq : uniq (env.mk Γ) = binding_list.uniq Γ :=
+  rfl
+
+end /- section -/ conversions --------------------------------------------------
+
+section props ------------------------------------------------------------------
 variables {Γ Γ₁ Γ₂ Γ₃ : env V} -- Environments
 
-/- Keep and-chains right-associated. -/
-local attribute [simp] and.assoc
+local attribute [simp] conv.binding conv.empty conv.insert conv.one conv.append
+local attribute [simp] conv.mem conv.map conv.dom conv.disjoint conv.uniq
+local attribute [simp] decidable.not_or_iff_and_not
 
---------------------------------------------------------------------------------
-
-/- Basic properties of append -/
-section append_basic -----------------------------------------------------------
+section append -----------------------------------------------------------------
 
 @[simp]
-theorem append_nil_left : [] ++ Γ = Γ :=
-  rfl
+theorem append_empty_left : ∅ ++ Γ = Γ :=
+  by cases Γ; simp
 
 @[simp]
-theorem append_nil_right : Γ ++ [] = Γ :=
+theorem append_empty_right : Γ ++ ∅ = Γ :=
+  by cases Γ; simp
+
+@[simp]
+theorem append_insert : insert b Γ₁ ++ Γ₂ = insert b (Γ₁ ++ Γ₂) :=
+  by cases Γ₁; cases Γ₂; simp
+
+@[simp]
+theorem append_assoc : Γ₁ ++ Γ₂ ++ Γ₃ = Γ₁ ++ (Γ₂ ++ Γ₃) :=
+  by cases Γ₁; cases Γ₂; cases Γ₃; simp
+
+end /- section -/ append -------------------------------------------------------
+
+section mem --------------------------------------------------------------------
+
+@[simp]
+theorem mem_empty : b ∈ ∅ ↔ false :=
   by simp
 
 @[simp]
-theorem append_cons : b :: Γ₁ ++ Γ₂ = b :: (Γ₁ ++ Γ₂) :=
-  rfl
-
-/-
--- TODO: I don't think this is needed.
-@[simp]
-theorem cons_append_one : list.cons (binding x s) Γ = one x s ++ Γ :=
-  rfl
--/
-
-end /- section -/ append_basic -------------------------------------------------
-
-/- Basic properties of mem -/
-section mem_basic --------------------------------------------------------------
+theorem mem_insert : b₁ ∈ insert b₂ Γ ↔ (b₁ = b₂ ∨ b₁ ∈ Γ) :=
+  by cases Γ; simp
 
 @[simp]
-theorem mem_nil : b ∈ ([] : env V) ↔ false :=
+theorem mem_one : b₁ ∈ one b₂ ↔ b₁ = b₂ :=
   by simp
-
-@[simp]
-theorem mem_one : binding x₁ s₁ ∈ one x₂ s₂ ↔ x₁ = x₂ ∧ s₁ = s₂ :=
-  by simp [binding, one, list.mem_singleton]
 
 @[simp]
 theorem mem_append : b ∈ Γ₁ ++ Γ₂ ↔ b ∈ Γ₁ ∨ b ∈ Γ₂ :=
-  list.mem_append
+  by cases Γ₁; cases Γ₂; simp
 
-end /- section -/ mem_basic ----------------------------------------------------
+theorem mem_append_weaken : b ∈ Γ₁ ++ Γ₃ → b ∈ Γ₁ ++ Γ₂ ++ Γ₃ :=
+  by simp; exact or.imp id or.inr
 
-/- Basic properties of map -/
-section map_basic --------------------------------------------------------------
-local attribute [simp] map
+end /- section -/ mem ----------------------------------------------------------
 
-@[simp]
-theorem map_nil : map fs [] = [] :=
-  rfl
+section map --------------------------------------------------------------------
 
 @[simp]
-theorem map_cons : map fs (b :: Γ) = binding b.1 (fs b.2) :: map fs Γ :=
-  by cases b; refl
+theorem map_empty : map fs ∅ = ∅ :=
+  by simp
 
 @[simp]
-theorem map_one : map fs (one x s) = one x (fs s) :=
-  rfl
+theorem map_insert : map fs (insert b Γ) = insert (b.var :~ fs b.sch) (map fs Γ) :=
+  by cases Γ; simp
+
+@[simp]
+theorem map_one : map fs (one b) = one (b.var :~ fs b.sch) :=
+  by simp
 
 @[simp]
 theorem map_append : map fs (Γ₁ ++ Γ₂) = map fs Γ₁ ++ map fs Γ₂ :=
-  by simp [list.map_append]
+  by cases Γ₁; cases Γ₂; simp
 
-end /- section -/ map_basic ----------------------------------------------------
+end /- section -/ map ----------------------------------------------------------
 
-/- Basic properties of dom -/
-section dom_basic --------------------------------------------------------------
-local attribute [simp] dom
+section dom --------------------------------------------------------------------
+variables [decidable_eq V]
 
 @[simp]
-theorem dom_nil : dom [] = (∅ : finset V) :=
+theorem dom_empty : dom ∅ = finset.empty :=
   rfl
 
 @[simp]
-theorem dom_one : dom (one x s) = finset.singleton x :=
-  rfl
+theorem dom_insert : dom (insert b Γ) = insert b.var (dom Γ) :=
+  by cases Γ; simp
 
 @[simp]
-theorem dom_cons_val : (dom (binding x s :: Γ)).val = multiset.ndinsert x (Γ.dom.val) :=
-  begin
-    cases Γ,
-    case list.nil { simp },
-    case list.cons : hd tl { cases hd, simp }
-  end
+theorem dom_one : dom (one b) = finset.singleton b.var :=
+  by simp; refl
 
 @[simp]
-theorem dom_cons_insert : dom (b :: Γ) = insert b.1 Γ.dom :=
-  by cases b; simp
-
-/-
--- TODO: I don't think this is needed.
-@[simp]
-theorem dom_cons : dom (b :: Γ) = finset.singleton b.1 ∪ Γ.dom :=
-  by cases b; simp [finset.insert_eq]
--/
+theorem dom_append : dom (Γ₁ ++ Γ₂) = dom Γ₁ ∪ dom Γ₂ :=
+  by cases Γ₁; cases Γ₂; simp
 
 @[simp]
-theorem dom_append : dom (Γ₁ ++ Γ₂) = Γ₁.dom ∪ Γ₂.dom :=
-  by induction Γ₁ with _ _ ih; simp; simp [ih]
+theorem dom_map : dom (map fs Γ) = dom Γ :=
+  by cases Γ; simp
+
+end /- section -/ dom ----------------------------------------------------------
+
+section mem_dom ----------------------------------------------------------------
+variables [decidable_eq V]
 
 @[simp]
-theorem dom_map : dom (Γ.map fs) = Γ.dom :=
-  by induction Γ with _ _ ih; simp; simp [ih]
+theorem mem_dom_empty : x ∈ dom ∅ ↔ false :=
+  by refl
 
 @[simp]
-theorem mem_dom_wrap : x ∈ (dom Γ).val ↔ x ∈ dom Γ :=
-  by induction Γ with hd tl ih; [simp, {cases hd, simp [ih]}]
-
-end /- section -/ dom_basic ----------------------------------------------------
-
-/- Basic properties of unbound -/
-section unbound_basic ----------------------------------------------------------
-local attribute [simp] unbound
+theorem mem_dom_insert : x₁ ∈ insert x₂ (dom Γ) ↔ x₁ = x₂ ∨ x₁ ∈ dom Γ :=
+  by cases Γ; simp
 
 @[simp]
-theorem unbound_wrap : x ∉ (dom Γ).val ↔ Γ.unbound x :=
-  by simp
-
-theorem ne_dom_unbound : x₁ ∈ dom Γ → unbound x₂ Γ → x₁ ≠ x₂ :=
-  λ h, mt $ λ e, e ▸ h
-
-@[simp]
-theorem unbound_nil : unbound x [] ↔ true :=
-  iff_true_intro (by simp)
-
-@[simp]
-theorem unbound_cons : unbound x₁ (binding x₂ s :: Γ) ↔ x₁ ≠ x₂ ∧ unbound x₁ Γ :=
-  by simp [decidable.not_or_iff_and_not]
-
-@[simp]
-theorem unbound_one : unbound x₁ (one x₂ s) ↔ x₁ ≠ x₂ :=
+theorem not_mem_dom_insert : x₁ ∉ insert x₂ (dom Γ) ↔ x₁ ≠ x₂ ∧ x₁ ∉ dom Γ :=
   by simp
 
 @[simp]
-theorem unbound_append : unbound x (Γ₁ ++ Γ₂) ↔ unbound x Γ₁ ∧ unbound x Γ₂ :=
-  by simp [decidable.not_or_iff_and_not]
-
-@[simp]
-theorem unbound_map : unbound x (map fs Γ) ↔ unbound x Γ :=
+theorem mem_dom_one : x ∈ dom (one b) ↔ x = b.var :=
   by simp
 
-end /- section -/ unbound_basic ------------------------------------------------
+@[simp]
+theorem not_mem_dom_one : x ∉ dom (one b) ↔ x ≠ b.var :=
+  by simp
 
-/- Basic properties of disjoint -/
-section disjoint_basic ---------------------------------------------------------
+theorem ne_of_mem_dom_of_not_mem_dom : x₁ ∈ dom Γ → x₂ ∉ dom Γ → x₁ ≠ x₂ :=
+  ne_of_mem_of_not_mem
 
-theorem disjoint_multiset : disjoint Γ₁ Γ₂ ↔ Γ₁.dom.1.disjoint Γ₂.dom.1 :=
-  finset.inter_eq_empty_iff_disjoint
+theorem mem_dom_union : x ∈ dom Γ₁ ∪ dom Γ₂ = (x ∈ dom Γ₁ ∨ x ∈ dom Γ₂) :=
+  by simp
 
-/- disjoint_multiset is used in nearly every simp in this section. -/
-local attribute [simp] disjoint_multiset
+theorem not_mem_dom_union : x ∉ dom Γ₁ ∪ dom Γ₂ = (x ∉ dom Γ₁ ∧ x ∉ dom Γ₂) :=
+  by simp
+
+theorem mem_dom_of_mem : b ∈ Γ → b.var ∈ dom Γ :=
+  by cases Γ; cases b; exact binding_list.mem_dom_of_mem
+
+end /- section -/ mem_dom ------------------------------------------------------
+
+section disjoint ---------------------------------------------------------------
+variables [decidable_eq V]
+
+theorem disjoint_forall : disjoint Γ₁ Γ₂ ↔ ∀ {b : binding V}, b ∈ Γ₁ → b.var ∉ dom Γ₂ :=
+  by cases Γ₁; cases Γ₂; exact binding_list.disjoint_forall
 
 theorem disjoint.symm : disjoint Γ₁ Γ₂ → disjoint Γ₂ Γ₁ :=
-  by simp
+  by cases Γ₁; cases Γ₂; exact binding_list.disjoint.symm
 
-theorem disjoint_comm : disjoint Γ₁ Γ₂ ↔ disjoint Γ₂ Γ₁ :=
-  by simp
-
-@[simp]
-theorem disjoint_nil : disjoint [] Γ ↔ true :=
-  iff_true_intro (by simp)
+theorem disjoint_comm (Γ₁ Γ₂ : env V) : disjoint Γ₁ Γ₂ ↔ disjoint Γ₂ Γ₁ :=
+  by cases Γ₁; cases Γ₂; exact binding_list.disjoint_comm
 
 @[simp]
-theorem disjoint_one_left : disjoint (one x s) Γ ↔ Γ.unbound x :=
-  by simp
+theorem disjoint_nil : disjoint ∅ Γ ↔ true :=
+  by cases Γ; simp
 
 @[simp]
-theorem disjoint_one_right : disjoint Γ (one x s) ↔ Γ.unbound x :=
-  by simp
-
-private
-lemma unbound_of_disjoint_cons : disjoint (b :: Γ₁) Γ₂ → Γ₂.unbound b.1 :=
-  by intro h; simp at h; exact h.1
-
-private
-lemma disjoint_of_disjoint_cons : disjoint (b :: Γ₁) Γ₂ → disjoint Γ₁ Γ₂ :=
-  by simp
-
-private
-lemma disjoint_cons : Γ₂.unbound b.1 → disjoint Γ₁ Γ₂ → disjoint (b :: Γ₁) Γ₂ :=
-  by simp; exact and.intro
+theorem disjoint_insert_left : disjoint (insert b Γ₁) Γ₂ ↔ b.var ∉ dom Γ₂ ∧ disjoint Γ₁ Γ₂ :=
+  by cases Γ₁; cases Γ₂; simp
 
 @[simp]
-theorem disjoint_cons_left : disjoint (b :: Γ₁) Γ₂ ↔ Γ₂.unbound b.1 ∧ Γ₁.disjoint Γ₂ :=
-  ⟨ λ h, ⟨unbound_of_disjoint_cons h, disjoint_of_disjoint_cons h⟩
-  , λ h, disjoint_cons h.1 h.2
-  ⟩
+theorem disjoint_insert_right : disjoint Γ₁ (insert b Γ₂) ↔ b.var ∉ dom Γ₁ ∧ disjoint Γ₁ Γ₂ :=
+  by rw [disjoint_comm Γ₁ _, disjoint_insert_left, disjoint_comm Γ₂ _]
 
 @[simp]
-theorem disjoint_cons_right : disjoint Γ₁ (b :: Γ₂) ↔ Γ₁.unbound b.1 ∧ Γ₁.disjoint Γ₂ :=
-  by simp
+theorem disjoint_one_left : disjoint (one b) Γ ↔ b.var ∉ dom Γ :=
+  by cases Γ; simp
+
+@[simp]
+theorem disjoint_one_right : disjoint Γ (one b) ↔ b.var ∉ dom Γ :=
+  by rw [disjoint_comm _ _, disjoint_one_left]
 
 @[simp]
 theorem disjoint_append_left : disjoint (Γ₁ ++ Γ₂) Γ₃ ↔ disjoint Γ₁ Γ₃ ∧ disjoint Γ₂ Γ₃ :=
-  by simp
+  by cases Γ₁; cases Γ₂; cases Γ₃; simp
 
 @[simp]
 theorem disjoint_append_right : disjoint Γ₁ (Γ₂ ++ Γ₃) ↔ disjoint Γ₁ Γ₂ ∧ disjoint Γ₁ Γ₃ :=
-  by simp
+  by rw [disjoint_comm Γ₁ _, disjoint_append_left, disjoint_comm Γ₂ _, disjoint_comm Γ₃ _]
 
 @[simp]
 theorem disjoint_map_left : disjoint (map fs Γ₁) Γ₂ ↔ disjoint Γ₁ Γ₂ :=
-  by simp
+  by cases Γ₁; cases Γ₂; simp
 
 @[simp]
 theorem disjoint_map_right : disjoint Γ₁ (map fs Γ₂) ↔ disjoint Γ₁ Γ₂ :=
+  by rw [disjoint_comm Γ₁ _, disjoint_map_left, disjoint_comm Γ₂ _]
+
+end /- section -/ disjoint -----------------------------------------------------
+
+section uniq -------------------------------------------------------------------
+variables [decidable_eq V]
+
+@[simp]
+theorem uniq_empty : uniq ∅ ↔ true :=
   by simp
 
-end /- section -/ disjoint_basic -----------------------------------------------
-
-/- Basic properties of uniq -/
-section uniq_basic -------------------------------------------------------------
+@[simp]
+theorem uniq_insert : uniq (insert b Γ) ↔ b.var ∉ dom Γ ∧ uniq Γ :=
+  by cases Γ; cases b; simp
 
 @[simp]
-theorem uniq_empty : uniq ([] : env V) ↔ true :=
-  iff_true_intro uniq.empty
+theorem uniq_one : uniq (one b) ↔ true :=
+  by simp
 
 @[simp]
-theorem uniq_one : uniq (one x s) ↔ true :=
-  iff_true_intro (uniq.push x s [] (unbound_nil.mpr trivial) uniq.empty)
-
-private
-lemma uniq_head_unbound : uniq (binding x s :: Γ) → Γ.unbound x :=
-  by intro u; cases u; assumption
-
-private
-lemma uniq_tail_uniq : uniq (b :: Γ) → Γ.uniq :=
-  by intro u; cases u; assumption
-
-private
-lemma uniq_cons : Γ.unbound x → Γ.uniq → uniq (binding x s :: Γ) :=
-  by apply uniq.push
-
-@[simp]
-theorem uniq_cons_iff_unbound_head_uniq_tail : uniq (binding x s :: Γ) ↔ Γ.unbound x ∧ Γ.uniq :=
-  ⟨λ u, ⟨uniq_head_unbound u, uniq_tail_uniq u⟩, λ ⟨h₁, h₂⟩, uniq_cons h₁ h₂⟩
-
-private
-lemma uniq_append_left : uniq (Γ₁ ++ Γ₂) → Γ₁.uniq ∧ Γ₂.uniq ∧ disjoint Γ₁ Γ₂ :=
-  begin
-    induction Γ₁ with hd tl ih; [simp, {cases hd, simp}],
-    intros ub₁ ub₂ u,
-    have p : uniq tl ∧ uniq Γ₂ ∧ disjoint tl Γ₂ := ih u,
-    exact ⟨ub₁, ⟨p.1, ⟨p.2.1, ⟨ub₂, p.2.2⟩⟩⟩⟩
-  end
-
-private
-lemma uniq_append_right : Γ₁.uniq ∧ Γ₂.uniq ∧ disjoint Γ₁ Γ₂ → uniq (Γ₁ ++ Γ₂) :=
-  begin
-    intro h, rcases h with ⟨u₁, u₂, d⟩,
-    induction Γ₁,
-    case list.nil { simpa },
-    case list.cons : hd tl ih {
-      cases hd, simp at u₁, simp at d, simp,
-      exact ⟨u₁.1, ⟨d.1, ih u₁.2 d.2⟩⟩
-    }
-  end
-
-@[simp]
-theorem uniq_append : uniq (Γ₁ ++ Γ₂) ↔ Γ₁.uniq ∧ Γ₂.uniq ∧ disjoint Γ₁ Γ₂ :=
-  ⟨uniq_append_left, uniq_append_right⟩
+theorem uniq_append : uniq (Γ₁ ++ Γ₂) ↔ uniq Γ₁ ∧ uniq Γ₂ ∧ disjoint Γ₁ Γ₂ :=
+  by cases Γ₁; cases Γ₂; simp
 
 @[simp]
 theorem uniq_map : uniq (map fs Γ) ↔ uniq Γ :=
-  by induction Γ with hd tl ih; [simp, {cases hd, simp [ih]}]
+  by cases Γ; simp
 
-end /- section -/ uniq_basic ---------------------------------------------------
+end /- section -/ uniq ---------------------------------------------------------
 
-/- Basic properties of binds -/
-section binds_basic ------------------------------------------------------------
-local attribute [simp] binds prod.map
+section mem_map ----------------------------------------------------------------
+open function 
 
-@[simp]
-theorem binds_nil : binds x s [] ↔ false :=
-  by simp
+theorem mem_map_of_inj : injective fs → (x :~ fs s ∈ map fs Γ ↔ x :~ s ∈ Γ) :=
+  λ h, by cases Γ; exact binding_list.mem_map_of_inj h
 
-@[simp]
-theorem binds_one : binds x₁ s₁ (one x₂ s₂) ↔ x₁ = x₂ ∧ s₁ = s₂ :=
-  by simp
+theorem mem_map : x :~ s₁ ∈ map fs Γ ↔ ∃ s₂, x :~ s₂ ∈ Γ ∧ fs s₂ = s₁ :=
+  by cases Γ; exact binding_list.mem_map
 
-@[simp]
-theorem binds_cons : binds x₁ s₁ (binding x₂ s₂ :: Γ) ↔ x₁ = x₂ ∧ s₁ = s₂ ∨ binds x₁ s₁ Γ :=
-  by simp
+theorem mem_map_of_mem : x :~ s ∈ Γ → x :~ fs s ∈ map fs Γ :=
+  by cases Γ; exact binding_list.mem_map_of_mem
 
-@[simp]
-theorem binds_append : binds x s (Γ₁ ++ Γ₂) ↔ binds x s Γ₁ ∨ binds x s Γ₂ :=
-  by simp
+end /- section -/ mem_map ------------------------------------------------------
 
-theorem binds_map₁ : function.injective fs → binds x (fs s) (map fs Γ) → binds x s Γ :=
-  begin
-    intro fs_inj,
-    cases Γ with hd tl; [simp, {cases hd, simp}],
-    intro h, cases h,
-    case or.inl : h {
-      cases h with h₁ h₂,
-      exact or.inl ⟨h₁, fs_inj h₂⟩
-    },
-    case or.inr : h {
-      rcases h with ⟨u₁, u₂, h₁, h₂, h₃⟩,
-      subst h₂,
-      have h₄ : u₂ = s := fs_inj h₃,
-      subst h₄,
-      exact or.inr h₁,
-    }
-  end
+section uniq -------------------------------------------------------------------
+variables [decidable_eq V]
 
-theorem binds_map₂ : binds x s₁ (map fs Γ) → ∃ s₂, fs s₂ = s₁ ∧ binds x s₂ Γ :=
-  begin
-    cases Γ with hd tl; [simp, {cases hd with _ s₂, simp}],
-    intro h, cases h,
-    case or.inl : h {
-      cases h with h₁ h₂,
-      exact ⟨s₂, ⟨h₂.symm, or.inl ⟨h₁, rfl⟩⟩⟩
-    },
-    case or.inr : h {
-      rcases h with ⟨_, s₃, h₁, h₂, h₃⟩,
-      subst h₂,
-      exact ⟨s₃, ⟨h₃, or.inr h₁⟩⟩
-    }
-  end
+theorem mem_insert_of_uniq_insert
+: uniq (insert (x₂ :~ s₂) Γ)
+→ (x₁ :~ s₁ ∈ insert (x₂ :~ s₂) Γ ↔ x₁ = x₂ ∧ s₁ = s₂ ∧ x₁ ∉ dom Γ ∨ x₁ :~ s₁ ∈ Γ ∧ x₁ ≠ x₂) :=
+  by cases Γ; exact binding_list.mem_cons_of_uniq_cons
 
-theorem binds_map₃ : binds x s Γ → binds x (fs s) (map fs Γ) :=
-  begin
-    cases Γ with hd tl; [simp, {cases hd, simp}],
-    intro h, cases h,
-    case or.inl : h {
-      cases h with h₁ h₂,
-      exact or.inl ⟨h₁, congr_arg fs h₂⟩
-    },
-    case or.inr : h {
-      exact or.inr ⟨x, ⟨s, ⟨h, by simp [prod.map]⟩⟩⟩
-    }
-  end
-
-theorem binds_dom : binds x s Γ → x ∈ dom Γ :=
-  begin
-    induction Γ with hd tl ih; [simp, {cases hd, simp}],
-    exact or.imp and.left ih
-  end
-
-theorem unbound_of_binds_disjoint : disjoint Γ₁ Γ₂ → binds x s Γ₁ → unbound x Γ₂ :=
-  begin
-    induction Γ₁ with hd tl ih; [simp, {cases hd, simp}],
-    intros u d b,
-    exact match b with
-      | or.inl ⟨h, _⟩ := eq.rec_on h.symm u
-      | or.inr h      := ih d h
-    end
-  end
-
-private
-lemma binds_append_uniq₁
-: uniq (Γ₁ ++ Γ₂) → binds x s (Γ₁ ++ Γ₂)
-→ binds x s Γ₁ ∧ unbound x Γ₂ ∨ unbound x Γ₁ ∧ binds x s Γ₂ :=
-  begin
-    simp,
-    intros _ _ d,
-    exact or.imp (λ b, ⟨b, unbound_of_binds_disjoint d b⟩) (λ b, ⟨unbound_of_binds_disjoint d.symm b, b⟩)
-  end
-
-theorem binds_append_uniq
+theorem mem_append_of_uniq_append
 : uniq (Γ₁ ++ Γ₂)
-→ (binds x s (Γ₁ ++ Γ₂) ↔ binds x s Γ₁ ∧ unbound x Γ₂ ∨ unbound x Γ₁ ∧ binds x s Γ₂) :=
-  λ u, ⟨binds_append_uniq₁ u, binds_append.mpr ∘ or.imp and.left and.right⟩
+→ (x :~ s ∈ Γ₁ ++ Γ₂ ↔ x :~ s ∈ Γ₁ ∧ x ∉ dom Γ₂ ∨ x ∉ dom Γ₁ ∧ x :~ s ∈ Γ₂) :=
+  by cases Γ₁; cases Γ₂; exact binding_list.mem_append_of_uniq_append
 
-private
-lemma binds_cons_uniq₁
-: uniq (binding x₂ s₂ :: Γ)
-→ binds x₁ s₁ (binding x₂ s₂ :: Γ)
-→ x₁ = x₂ ∧ s₁ = s₂ ∧ unbound x₁ Γ ∨ binds x₁ s₁ Γ ∧ x₁ ≠ x₂ :=
-  begin
-    simp,
-    intros b u h,
-    exact match h with
-      | or.inl ⟨h₁, h₂⟩ := or.inl ⟨h₁, ⟨h₂, eq.rec_on h₁.symm b⟩⟩
-      | or.inr h        := or.inr ⟨h, ne_dom_unbound (binds_dom h) b⟩
-    end
-  end
+end /- section -/ uniq ---------------------------------------------------------
 
-theorem binds_cons_uniq
-: uniq (binding x₂ s₂ :: Γ)
-→ (binds x₁ s₁ (binding x₂ s₂ :: Γ) ↔ x₁ = x₂ ∧ s₁ = s₂ ∧ unbound x₁ Γ ∨ binds x₁ s₁ Γ ∧ x₁ ≠ x₂) :=
-  λ u, ⟨binds_cons_uniq₁ u, by simp; exact or.imp (λ h, ⟨h.1, h.2.1⟩) and.left⟩
-
-end /- section -/ binds_basic --------------------------------------------------
+end /- section -/ props --------------------------------------------------------
 
 end /- namespace -/ env --------------------------------------------------------
 end /- namespace -/ tts --------------------------------------------------------

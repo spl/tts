@@ -8,9 +8,12 @@ structure sch (V : Type) : Type :=
   (arity : ℕ)
   (type : typ V)
 
-variables {V : Type} [decidable_eq V] -- Type of variable names
+attribute [pp_using_anonymous_constructor] sch
+
+variables {V : Type} -- Type of variable names
 
 namespace sch ------------------------------------------------------------------
+variables [decidable_eq V]
 
 -- Get the free variables of a scheme.
 def fv (s : sch V) : finset V :=
@@ -31,6 +34,8 @@ namespace sch ------------------------------------------------------------------
 protected
 def open_vars (vs : list V) (s : sch V) : typ V :=
   s.type.open_vars vs
+
+variables [decidable_eq V]
 
 -- Property of a scheme body.
 def body (n : ℕ) (t : typ V) : Prop :=
