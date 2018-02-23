@@ -1,5 +1,4 @@
 import .defs
-import data.multiset.extra
 import logic.basic
 
 open function
