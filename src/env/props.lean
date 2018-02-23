@@ -105,7 +105,7 @@ theorem mem_one : b₁ ∈ one b₂ ↔ b₁ = b₂ :=
 theorem mem_append : b ∈ Γ₁ ++ Γ₂ ↔ b ∈ Γ₁ ∨ b ∈ Γ₂ :=
   by cases Γ₁; cases Γ₂; simp
 
-theorem mem_append_weaken : b ∈ Γ₁ ++ Γ₃ → b ∈ Γ₁ ++ Γ₂ ++ Γ₃ :=
+theorem mem_append_weaken : b ∈ Γ₁ ++ Γ₃ → b ∈ Γ₁ ++ (Γ₂ ++ Γ₃) :=
   by simp; exact or.imp id or.inr
 
 end /- section -/ mem ----------------------------------------------------------
@@ -180,12 +180,6 @@ theorem not_mem_dom_one : x ∉ dom (one b) ↔ x ≠ b.var :=
 
 theorem ne_of_mem_dom_of_not_mem_dom : x₁ ∈ dom Γ → x₂ ∉ dom Γ → x₁ ≠ x₂ :=
   ne_of_mem_of_not_mem
-
-theorem mem_dom_union : x ∈ dom Γ₁ ∪ dom Γ₂ = (x ∈ dom Γ₁ ∨ x ∈ dom Γ₂) :=
-  by simp
-
-theorem not_mem_dom_union : x ∉ dom Γ₁ ∪ dom Γ₂ = (x ∉ dom Γ₁ ∧ x ∉ dom Γ₂) :=
-  by simp
 
 theorem mem_dom_of_mem : b ∈ Γ → b.var ∈ dom Γ :=
   by cases Γ; cases b; exact binding_list.mem_dom_of_mem

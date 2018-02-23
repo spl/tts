@@ -1,6 +1,10 @@
 import data.finset
 
 namespace finset ---------------------------------------------------------------
+variables {α : Type*} [decidable_eq α]
+
+theorem insert_union_distrib (a : α) (s t : finset α) : insert a (s ∪ t) = insert a s ∪ insert a t :=
+  by simp [ext]
 
 class has_fresh (A : Type) :=
   (fresh : ∀ (s : finset A), Σ' a : A, a ∉ s)

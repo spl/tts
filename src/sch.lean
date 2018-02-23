@@ -32,14 +32,14 @@ namespace sch ------------------------------------------------------------------
 
 -- Open a type scheme with a list of free variables for bound variables.
 protected
-def open_vars (vs : list V) (s : sch V) : typ V :=
-  s.type.open_vars vs
+def open_vars (xs : list V) (s : sch V) : typ V :=
+  s.type.open_vars xs
 
 variables [decidable_eq V]
 
 -- Property of a scheme body.
 def body (n : ℕ) (t : typ V) : Prop :=
-  ∃ (vs : finset V), ∀ (xs : list V), fresh vs n xs → (t.open_vars xs).lc
+  ∃ (L : finset V), ∀ (xs : list V), n = xs.length → fresh xs L → (t.open_vars xs).lc
 
 -- Property of a well-formed scheme.
 def well_formed (s : sch V) : Prop :=
