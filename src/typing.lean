@@ -60,8 +60,6 @@ theorem typing_weaken
       }
     },
     case typing.let_ : L₁ L₂ Γ ed eb s₁ t₂ F₁ F₂ ihd ihb {
-      dsimp at ihd,
-      dsimp at ihb,
       refine let_ (λ xs (ar_eq_len : s₁.arity = xs.length) (fr : fresh xs (L₁ ∪ dom (Γ₁ ++ (Γ₂ ++ Γ₃)))), _)
                   (λ x (p : x ∉ L₂ ∪ dom (Γ₁ ++ (Γ₂ ++ Γ₃))), _),
       show typing (Γ₁ ++ (Γ₂ ++ Γ₃)) ed (s₁.open_vars xs), {
