@@ -54,6 +54,26 @@ theorem binding_map_inj (fs_inj : injective fs) : injective (binding.map fs) :=
 
 end /- section -/ binding ------------------------------------------------------
 
+-- Basic properties of mem
+section mem --------------------------------------------------------------------
+
+theorem mem_remove_mid_of_ne_var
+: x₁ ≠ x₂
+→ x₁ :~ s₁ ∈ Γ₁ ++ ([x₂ :~ s₂] ++ Γ₂)
+→ x₁ :~ s₁ ∈ Γ₁ ++ Γ₂ :=
+  begin
+    intro nh,
+    simp,
+    intro p,
+    exact match p with
+      | or.inl p := or.inl p
+      | or.inr (or.inl ⟨h, _⟩) := absurd h nh
+      | or.inr (or.inr p) := or.inr p
+    end
+  end
+
+end /- section -/ mem ----------------------------------------------------------
+
 -- Basic properties of mem and map
 section mem_map ----------------------------------------------------------------
 
@@ -95,6 +115,17 @@ theorem dom_append : dom (Γ₁ ++ Γ₂) = dom Γ₁ ∪ dom Γ₂ :=
 @[simp]
 theorem dom_map : dom (map fs Γ) = dom Γ :=
   by induction Γ with _ _ ih; simp; simp [ih]
+
+@[simp]
+theorem mem_dom : x :~ s ∈ Γ → x ∈ dom Γ :=
+  begin
+    induction Γ with hd tl ih; [simp, {cases hd, simp [ih]}],
+    intro p,
+    exact match p with
+      | or.inl ⟨p, _⟩ := or.inl p
+      | or.inr p      := or.inr (ih p)
+    end
+  end
 
 @[simp]
 theorem mem_dom_wrap : x ∈ (dom Γ).val ↔ x ∈ dom Γ :=
@@ -142,19 +173,23 @@ private
 lemma disjoint_of_disjoint_cons : disjoint (b :: Γ₁) Γ₂ → disjoint Γ₁ Γ₂ :=
   by simp
 
-private
-lemma disjoint_cons : b.var ∉ dom Γ₂ → disjoint Γ₁ Γ₂ → disjoint (b :: Γ₁) Γ₂ :=
-  by simp; exact and.intro
-
 @[simp]
-theorem disjoint_cons : disjoint (b :: Γ₁) Γ₂ ↔ b.var ∉ dom Γ₂ ∧ disjoint Γ₁ Γ₂ :=
+theorem disjoint_cons_left : disjoint (b :: Γ₁) Γ₂ ↔ b.var ∉ dom Γ₂ ∧ disjoint Γ₁ Γ₂ :=
   ⟨ λ h, ⟨not_mem_dom_of_disjoint_cons h, disjoint_of_disjoint_cons h⟩
-  , λ h, disjoint_cons h.1 h.2
+  , by simp; exact and.intro
   ⟩
 
 @[simp]
-theorem disjoint_append : disjoint (Γ₁ ++ Γ₂) Γ₃ ↔ disjoint Γ₁ Γ₃ ∧ disjoint Γ₂ Γ₃ :=
+theorem disjoint_cons_right : disjoint Γ₁ (b :: Γ₂) ↔ b.var ∉ dom Γ₁ ∧ disjoint Γ₁ Γ₂ :=
+  by simp [disjoint_comm]
+
+@[simp]
+theorem disjoint_append_left : disjoint (Γ₁ ++ Γ₂) Γ₃ ↔ disjoint Γ₁ Γ₃ ∧ disjoint Γ₂ Γ₃ :=
   by simp
+
+@[simp]
+theorem disjoint_append_right : disjoint Γ₁ (Γ₂ ++ Γ₃) ↔ disjoint Γ₁ Γ₂ ∧ disjoint Γ₁ Γ₃ :=
+  by simp [disjoint_comm]
 
 @[simp]
 theorem disjoint_map : disjoint (map fs Γ₁) Γ₂ ↔ disjoint Γ₁ Γ₂ :=
@@ -198,6 +233,9 @@ lemma uniq_append_right : uniq Γ₁ ∧ uniq Γ₂ ∧ disjoint Γ₁ Γ₂ →
 @[simp]
 theorem uniq_append : uniq (Γ₁ ++ Γ₂) ↔ uniq Γ₁ ∧ uniq Γ₂ ∧ disjoint Γ₁ Γ₂ :=
   ⟨uniq_append_left, uniq_append_right⟩
+
+theorem uniq_remove_mid : uniq (Γ₁ ++ (Γ₂ ++ Γ₃)) → uniq (Γ₁ ++ Γ₃) :=
+  by simp; exact λ u₁ u₂ u₃ d₂₃ d₁₂ d₁₃, ⟨u₁, u₃, d₁₃⟩
 
 @[simp]
 theorem uniq_map : uniq (map fs Γ) ↔ uniq Γ :=
@@ -303,6 +341,20 @@ theorem mem_append_of_uniq_append
 : uniq (Γ₁ ++ Γ₂)
 → (x :~ s ∈ Γ₁ ++ Γ₂ ↔ x :~ s ∈ Γ₁ ∧ x ∉ dom Γ₂ ∨ x ∉ dom Γ₁ ∧ x :~ s ∈ Γ₂) :=
   λ u, ⟨mem_append_of_uniq_append' u, list.mem_append.mpr ∘ or.imp and.left and.right⟩
+
+theorem eq_sch_of_uniq_one_mid_of_mem_one_mid
+: uniq (Γ₁ ++ ([x :~ s₂] ++ Γ₂))
+→ x :~ s₁ ∈ Γ₁ ++ ([x :~ s₂] ++ Γ₂)
+→ s₁ = s₂ :=
+  begin
+    simp,
+    intros _ dom_Γ₂ _ dom_Γ₁ _ h,
+    exact match h with
+      | or.inl p := absurd (mem_dom p) dom_Γ₁
+      | or.inr (or.inl p) := p
+      | or.inr (or.inr p) := absurd (mem_dom p) dom_Γ₂
+    end
+  end
 
 end /- section -/ mem ----------------------------------------------------------
 

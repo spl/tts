@@ -108,6 +108,12 @@ theorem mem_append : b ∈ Γ₁ ++ Γ₂ ↔ b ∈ Γ₁ ∨ b ∈ Γ₂ :=
 theorem mem_append_weaken : b ∈ Γ₁ ++ Γ₃ → b ∈ Γ₁ ++ (Γ₂ ++ Γ₃) :=
   by simp; exact or.imp id or.inr
 
+theorem mem_remove_mid_of_ne_var
+: x₁ ≠ x₂
+→ x₁ :~ s₁ ∈ Γ₁ ++ (one (x₂ :~ s₂) ++ Γ₂)
+→ x₁ :~ s₁ ∈ Γ₁ ++ Γ₂ :=
+  by cases Γ₁; cases Γ₂; exact binding_list.mem_remove_mid_of_ne_var
+
 end /- section -/ mem ----------------------------------------------------------
 
 section map --------------------------------------------------------------------
@@ -181,6 +187,12 @@ theorem not_mem_dom_one : x ∉ dom (one b) ↔ x ≠ b.var :=
 theorem ne_of_mem_dom_of_not_mem_dom : x₁ ∈ dom Γ → x₂ ∉ dom Γ → x₁ ≠ x₂ :=
   ne_of_mem_of_not_mem
 
+theorem ne_of_not_mem_dom_one : x₁ ∉ dom (one (x₂ :~ s)) → x₁ ≠ x₂ :=
+  by simp
+
+theorem ne_of_not_mem_dom_mid : x₁ ∉ dom (Γ₁ ++ (one (x₂ :~ s) ++ Γ₂)) → x₁ ≠ x₂ :=
+  by cases Γ₁; cases Γ₂; simp; exact λ p _ _, p
+
 theorem mem_dom_of_mem : b ∈ Γ → b.var ∈ dom Γ :=
   by cases Γ; cases b; exact binding_list.mem_dom_of_mem
 
@@ -208,7 +220,7 @@ theorem disjoint_insert_left : disjoint (insert b Γ₁) Γ₂ ↔ b.var ∉ dom
 
 @[simp]
 theorem disjoint_insert_right : disjoint Γ₁ (insert b Γ₂) ↔ b.var ∉ dom Γ₁ ∧ disjoint Γ₁ Γ₂ :=
-  by rw [disjoint_comm Γ₁ _, disjoint_insert_left, disjoint_comm Γ₂ _]
+  by cases Γ₁; cases Γ₂; simp
 
 @[simp]
 theorem disjoint_one_left : disjoint (one b) Γ ↔ b.var ∉ dom Γ :=
@@ -224,7 +236,7 @@ theorem disjoint_append_left : disjoint (Γ₁ ++ Γ₂) Γ₃ ↔ disjoint Γ�
 
 @[simp]
 theorem disjoint_append_right : disjoint Γ₁ (Γ₂ ++ Γ₃) ↔ disjoint Γ₁ Γ₂ ∧ disjoint Γ₁ Γ₃ :=
-  by rw [disjoint_comm Γ₁ _, disjoint_append_left, disjoint_comm Γ₂ _, disjoint_comm Γ₃ _]
+  by cases Γ₁; cases Γ₂; cases Γ₃; simp
 
 @[simp]
 theorem disjoint_map_left : disjoint (map fs Γ₁) Γ₂ ↔ disjoint Γ₁ Γ₂ :=
@@ -254,6 +266,10 @@ theorem uniq_one : uniq (one b) ↔ true :=
 @[simp]
 theorem uniq_append : uniq (Γ₁ ++ Γ₂) ↔ uniq Γ₁ ∧ uniq Γ₂ ∧ disjoint Γ₁ Γ₂ :=
   by cases Γ₁; cases Γ₂; simp
+
+@[simp]
+theorem uniq_remove_mid : uniq (Γ₁ ++ (Γ₂ ++ Γ₃)) → uniq (Γ₁ ++ Γ₃) :=
+  by cases Γ₁; cases Γ₂; cases Γ₃; exact binding_list.uniq_remove_mid
 
 @[simp]
 theorem uniq_map : uniq (map fs Γ) ↔ uniq Γ :=
@@ -287,6 +303,12 @@ theorem mem_append_of_uniq_append
 : uniq (Γ₁ ++ Γ₂)
 → (x :~ s ∈ Γ₁ ++ Γ₂ ↔ x :~ s ∈ Γ₁ ∧ x ∉ dom Γ₂ ∨ x ∉ dom Γ₁ ∧ x :~ s ∈ Γ₂) :=
   by cases Γ₁; cases Γ₂; exact binding_list.mem_append_of_uniq_append
+
+theorem eq_sch_of_uniq_one_mid_of_mem_one_mid
+: uniq (Γ₁ ++ (one (x :~ s₂) ++ Γ₂))
+→ x :~ s₁ ∈ Γ₁ ++ (one (x :~ s₂) ++ Γ₂)
+→ s₁ = s₂ :=
+  by cases Γ₁; cases Γ₂; exact binding_list.eq_sch_of_uniq_one_mid_of_mem_one_mid
 
 end /- section -/ uniq ---------------------------------------------------------
 

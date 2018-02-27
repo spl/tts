@@ -3,6 +3,7 @@ import sch
 namespace tts ------------------------------------------------------------------
 
 -- A pair of a variable and a type scheme.
+@[derive decidable_eq]
 structure binding (V : Type) : Type :=
   (var : V)
   (sch : sch V)

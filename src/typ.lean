@@ -4,6 +4,7 @@ import data.finset
 namespace tts ------------------------------------------------------------------
 
 -- Grammar of types.
+@[derive decidable_eq]
 inductive typ (V : Type) : Type
   | varb {} : ℕ → typ          -- bound variable
   | varf    : V → typ          -- free variable
@@ -12,7 +13,7 @@ inductive typ (V : Type) : Type
 variables {V : Type} -- Type of variable names
 
 namespace typ ------------------------------------------------------------------
-variables [decidable_eq V]
+variables [_root_.decidable_eq V]
 
 -- Get the free variables of a type.
 def fv : typ V → finset V

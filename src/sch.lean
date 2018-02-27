@@ -4,6 +4,7 @@ import .typ
 namespace tts ------------------------------------------------------------------
 
 -- Grammar of type schemes.
+@[derive decidable_eq]
 structure sch (V : Type) : Type :=
   (arity : ℕ)
   (type : typ V)
@@ -13,7 +14,7 @@ attribute [pp_using_anonymous_constructor] sch
 variables {V : Type} -- Type of variable names
 
 namespace sch ------------------------------------------------------------------
-variables [decidable_eq V]
+variables [_root_.decidable_eq V]
 
 -- Get the free variables of a scheme.
 def fv (s : sch V) : finset V :=
@@ -35,7 +36,7 @@ protected
 def open_vars (xs : list V) (s : sch V) : typ V :=
   s.type.open_vars xs
 
-variables [decidable_eq V]
+variables [_root_.decidable_eq V]
 
 -- Property of a scheme body.
 def body (n : ℕ) (t : typ V) : Prop :=
