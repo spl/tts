@@ -1,5 +1,5 @@
-import .list
 import data.finset
+import data.list.extra
 
 namespace tts ------------------------------------------------------------------
 

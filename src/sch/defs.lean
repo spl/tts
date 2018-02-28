@@ -1,5 +1,5 @@
-import .fresh
-import .typ
+import fresh
+import typ
 
 namespace tts ------------------------------------------------------------------
 
