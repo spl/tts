@@ -92,14 +92,14 @@ lemma subst_lc {e ex : exp V} (x : V) (lx : lc ex) (l : lc e) : lc (subst x ex e
     case lc.lam : L eb Fb rb {
       refine lc.lam (λ (y : V) (py : y ∉ L ∪ {x}), _),
       rw finset.not_mem_union at py,
-      have rb : lc (subst x ex (exp.open_var y eb)) := rb y py.1 lx x,
+      have rb : lc (subst x ex (exp.open_var y eb)) := rb py.1 lx x,
       have x_ne_y : x ≠ y := ne.symm (finset.not_mem_singleton.mp py.2),
       rwa subst_open_var x_ne_y lx at rb
     },
     case lc.let_ : L ed eb ld Fb rd rb {
       refine lc.let_ (rd lx x) (λ (y : V) (py : y ∉ L ∪ {x}), _),
       rw finset.not_mem_union at py,
-      have rb : lc (subst x ex (exp.open_var y eb)) := rb y py.1 lx x,
+      have rb : lc (subst x ex (exp.open_var y eb)) := rb py.1 lx x,
       have x_ne_y : x ≠ y := ne.symm (finset.not_mem_singleton.mp py.2),
       rwa subst_open_var x_ne_y lx at rb
     }

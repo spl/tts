@@ -32,10 +32,10 @@ def open_var (x : V) : exp V → exp V :=
 
 -- Property of a locally-closed expression
 inductive lc : exp V → Prop
-  | varf : Π (x : V),                                                                        lc (varf x)
-  | app  : Π            {ef ea : exp V},     lc ef → lc ea →                                 lc (app ef ea)
-  | lam  : Π {L : finset V} {eb : exp V},            (∀ x : V, x ∉ L → lc (eb.open_var x)) → lc (lam eb)
-  | let_ : Π {L : finset V} {ed eb : exp V}, lc ed → (∀ x : V, x ∉ L → lc (eb.open_var x)) → lc (let_ ed eb)
+  | varf : Π (x : V),                                                                          lc (varf x)
+  | app  : Π                {ef ea : exp V}, lc ef → lc ea →                                   lc (app ef ea)
+  | lam  : Π {L : finset V} {eb : exp V},            (∀ {x : V}, x ∉ L → lc (eb.open_var x)) → lc (lam eb)
+  | let_ : Π {L : finset V} {ed eb : exp V}, lc ed → (∀ {x : V}, x ∉ L → lc (eb.open_var x)) → lc (let_ ed eb)
 
 def lc_body (eb : exp V) : Prop :=
   ∃ L : finset V, ∀ x : V, x ∉ L → lc (eb.open_var x)
@@ -45,8 +45,8 @@ def lc_body (eb : exp V) : Prop :=
 lemma lc.app.unfold {ef ea : exp V} (l : lc (app ef ea)) : lc ef ∧ lc ea :=
   by cases l with _ _ _ l₁ l₂; exact ⟨l₁, l₂⟩
 
-lemma lc.lam.unfold {eb : exp V} (l : lc (lam eb)) : ∃ (L : finset V), ∀ (x : V), x ∉ L → lc (eb.open_var x) :=
-  by cases l with _ _ _ _ _ L _ F; exact ⟨L, F⟩
+lemma lc.lam.unfold {eb : exp V} (l : lc (lam eb)) : ∃ (L : finset V), ∀ {x : V}, x ∉ L → lc (eb.open_var x) :=
+  by cases l with _ _ _ _ _ L _ F; exact ⟨L, @F⟩
 
 -- Properties of open
 
@@ -89,11 +89,11 @@ lemma open_lc.rec {e₁ e₂ : exp V} {k : ℕ} (l : lc e₁) : open.rec e₂ k 
     },
     case lc.lam : L eb Fb rb {
       cases finset.fresh L with x px,
-      rw open_lc.core (nat.succ_ne_zero k) (rb x px)
+      rw open_lc.core (nat.succ_ne_zero k) (rb px)
     },
     case lc.let_ : L ed eb ld Fb rd rb {
       cases finset.fresh L with x px,
-      rw [rd, open_lc.core (nat.succ_ne_zero k) (rb x px)]
+      rw [rd, open_lc.core (nat.succ_ne_zero k) (rb px)]
     }
   end
 
