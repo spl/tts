@@ -1,44 +1,9 @@
-import .type
+import .defs
 import data.finset.extra
-
-variables {V : Type} -- Type of variable names
 
 namespace tts ------------------------------------------------------------------
 namespace exp ------------------------------------------------------------------
-
--- Open an expression (last parameter) with an expression (eb) for a bound
--- variable.
-protected
-def open.rec (e : exp V) : ℕ → exp V → exp V
-  | k (varb i)     := if k = i then e else varb i
-  | k (varf x)     := varf x
-  | k (app ef ea)  := app (open.rec k ef) (open.rec k ea)
-  | k (lam eb)     := lam (open.rec (k + 1) eb)
-  | k (let_ ed eb) := let_ (open.rec k ed) (open.rec (k + 1) eb)
-
-end /- namespace -/ exp --------------------------------------------------------
-
--- Open an expression with an expression (eb) for the last bound variable (0).
-protected
-def exp.open (eb : exp V) : exp V → exp V :=
-  exp.open.rec eb 0
-
-namespace exp ------------------------------------------------------------------
-
--- Open an expression with a free variable (x) for the last bound variable (0).
-protected
-def open_var (x : V) : exp V → exp V :=
-  exp.open (varf x)
-
--- Property of a locally-closed expression
-inductive lc : exp V → Prop
-  | varf : Π (x : V),                                                                          lc (varf x)
-  | app  : Π                {ef ea : exp V}, lc ef → lc ea →                                   lc (app ef ea)
-  | lam  : Π {L : finset V} {eb : exp V},            (∀ {x : V}, x ∉ L → lc (eb.open_var x)) → lc (lam eb)
-  | let_ : Π {L : finset V} {ed eb : exp V}, lc ed → (∀ {x : V}, x ∉ L → lc (eb.open_var x)) → lc (let_ ed eb)
-
-def lc_body (eb : exp V) : Prop :=
-  ∃ L : finset V, ∀ x : V, x ∉ L → lc (eb.open_var x)
+variables {V : Type} -- Type of variable names
 
 -- Properties of lc
 

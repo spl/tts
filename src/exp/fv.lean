@@ -1,18 +1,9 @@
-import .type
+import .defs
 import data.finset.extra
-
-variables {V : Type} [decidable_eq V] -- Type of variable names
 
 namespace tts ------------------------------------------------------------------
 namespace exp ------------------------------------------------------------------
-
--- Get the free variables of an expression
-def fv : exp V → finset V
-  | (varb i)     := ∅
-  | (varf x)     := {x}
-  | (app ef ea)  := fv ef ∪ fv ea
-  | (lam eb)     := fv eb
-  | (let_ ed eb) := fv ed ∪ fv eb
+variables {V : Type} [decidable_eq V] -- Type of variable names
 
 -- Properties of fv
 

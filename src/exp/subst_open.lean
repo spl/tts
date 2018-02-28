@@ -1,10 +1,9 @@
 import exp.open
 import .subst
 
-variables {V : Type} [decidable_eq V] [finset.has_fresh V] -- Type of variable names
-
 namespace tts ------------------------------------------------------------------
 namespace exp ------------------------------------------------------------------
+variables {V : Type} [decidable_eq V] [finset.has_fresh V] -- Type of variable names
 
 lemma subst_open.rec {x : V} {k : ℕ} {ex e₁ e₂ : exp V} (lx : lc ex)
 : subst x ex (open.rec e₂ k e₁) = open.rec (subst x ex e₂) k (subst x ex e₁) :=

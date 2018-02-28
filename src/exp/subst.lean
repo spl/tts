@@ -2,16 +2,7 @@ import .fv
 
 namespace tts ------------------------------------------------------------------
 namespace exp ------------------------------------------------------------------
-
 variables {V : Type} [decidable_eq V] -- Type of variable names
-
--- Substitute a free variable for an expression in an expression
-def subst (x : V) (e : exp V) : exp V → exp V
-  | (varb i)     := varb i
-  | (varf y)     := if x = y then e else varf y
-  | (app ef ea)  := app (subst ef) (subst ea)
-  | (lam eb)     := lam (subst eb)
-  | (let_ ed eb) := let_ (subst ed) (subst eb)
 
 -- Properties of subst
 
