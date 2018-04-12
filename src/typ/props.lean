@@ -14,7 +14,6 @@ variables {ts ts₁ ts₂ : list (typ V)} -- Lists of types
 theorem open_of_lc (p : lc t) : typ.open ts t = t :=
   by induction t; cases p; simp [typ.open, *]
 
-section fv ---------------------------------------------------------------------
 variables [_root_.decidable_eq V]
 
 @[simp]
@@ -36,11 +35,6 @@ theorem fv_list_cons : fv_list (t :: ts) = fv t ∪ fv_list ts :=
 @[simp]
 theorem fv_list_append : fv_list (ts₁ ++ ts₂) = fv_list ts₁ ∪ fv_list ts₂ :=
   by induction ts₁ with _ _ ih; [simp, simp [ih]]
-
-end /- section -/ fv -----------------------------------------------------------
-
-section subst_fresh ------------------------------------------------------------
-variables [_root_.decidable_eq V]
 
 -- Substitution with a fresh name is the identity
 theorem subst_fresh : x ∉ fv t₁ → subst x t₂ t₁ = t₁ :=
@@ -78,10 +72,6 @@ theorem subst_list_fresh (p : fresh (fv t) xs) : subst_list xs ts t = t :=
     rw [subst_fresh p.2.1, ih p.2.2]
   end
 
-end /- section -/ subst_fresh --------------------------------------------------
-
-section subst_open -------------------------------------------------------------
-variables [_root_.decidable_eq V]
 
 -- Substitution distributes over open
 theorem subst_open (lc_t₂ : lc t₂)
@@ -200,8 +190,6 @@ theorem map_subst_lc
     cases lc_ts with _ _ lc_ts_hd lc_ts_tl,
     exact ⟨subst_lc lc_t lc_ts_hd, ih lc_ts_tl⟩
   end
-
-end /- section -/ subst_open ---------------------------------------------------
 
 end /- namespace -/ typ --------------------------------------------------------
 end /- namespace -/ tts --------------------------------------------------------
