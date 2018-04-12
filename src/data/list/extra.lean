@@ -27,6 +27,10 @@ theorem all_prop.append (ps₁ : all_prop p l₁) (ps₂ : all_prop p l₂)
   end
 
 @[simp]
+theorem all_prop_nil : all_prop p [] ↔ true :=
+  ⟨λ p, true.intro, λ t, all_prop.nil⟩
+
+@[simp]
 theorem all_prop_cons : all_prop p (a :: l) ↔ p a ∧ all_prop p l :=
   ⟨ λ p, by cases p with _ _ pa pl; exact ⟨pa, pl⟩
   , λ ⟨pa, pl⟩, all_prop.cons pa pl

@@ -189,6 +189,18 @@ theorem subst_list_lc
       (subst_lc lc_ts_hd lc_t)
   end
 
+-- Mapping substitution over a list of types is locally-closed if all type
+-- arguments are locally-closed.
+theorem map_subst_lc
+(lc_t : lc t)
+(lc_ts : list.all_prop lc ts)
+: list.all_prop lc (list.map (subst x t) ts) :=
+  begin
+    induction ts with _ _ ih; simp [list.map],
+    cases lc_ts with _ _ lc_ts_hd lc_ts_tl,
+    exact ⟨subst_lc lc_t lc_ts_hd, ih lc_ts_tl⟩
+  end
+
 end /- section -/ subst_open ---------------------------------------------------
 
 end /- namespace -/ typ --------------------------------------------------------
