@@ -165,6 +165,30 @@ theorem subst_list_intro
     lc_ts
     (by constructor)
 
+-- A type substituted with another type is locally-closed if all type arguments
+-- are locally-closed.
+theorem subst_lc (l₂ : lc t₂) (l₁ : lc t₁) : lc (subst x t₂ t₁) :=
+  begin
+    induction l₁; simp [subst],
+    case lc.varf : y { by_cases h : y = x; simp [h], exact l₂, exact lc.varf y },
+    case lc.arr : _ _ _ _ ih₁ ih₂ { exact lc.arr ih₁ ih₂ }
+  end
+
+-- A type substituted with a list of types is locally-closed if all type
+-- arguments are locally-closed.
+theorem subst_list_lc
+(len_xs_ts : list.length xs = list.length ts)
+(lc_ts : list.all_prop lc ts)
+(lc_t : lc t)
+: lc (subst_list xs ts t) :=
+  begin
+    induction xs with _ _ ih generalizing ts t; cases ts; simp [subst_list];
+      try { assumption },
+    cases lc_ts with _ _ lc_ts_hd lc_ts_tl,
+    exact ih (list.length_tail_eq_length_tail len_xs_ts) lc_ts_tl
+      (subst_lc lc_ts_hd lc_t)
+  end
+
 end /- section -/ subst_open ---------------------------------------------------
 
 end /- namespace -/ typ --------------------------------------------------------
