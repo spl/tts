@@ -1,5 +1,5 @@
 import .defs
-import fresh
+import data.finset.disjoint_list
 import logic.extra
 
 namespace tts ------------------------------------------------------------------
@@ -65,13 +65,12 @@ theorem subst_fresh_varf (p : x ∉ xs)
     exact ⟨list.ne_of_not_mem_cons p, ih (list.not_mem_of_not_mem_cons p)⟩
   end
 
-theorem subst_list_fresh (p : fresh (fv t) xs) : subst_list xs ts t = t :=
+theorem subst_list_fresh (p : finset.disjoint_list xs (fv t)) : subst_list xs ts t = t :=
   begin
     induction xs with _ _ ih generalizing ts t; [skip, cases ts]; simp [subst_list],
-    simp [fresh] at p,
-    rw [subst_fresh p.2.1, ih p.2.2]
+    simp at p,
+    rw [subst_fresh p.1, ih p.2]
   end
-
 
 -- Substitution distributes over open
 theorem subst_open (lc_t₂ : lc t₂)
@@ -96,24 +95,24 @@ theorem subst_open_vars (p : x ∉ xs) (lc_t₂ : lc t₂)
   by unfold open_vars; rw [subst_open lc_t₂, subst_fresh_varf p]
 
 theorem subst_list_intro.rec
-(fr_xs : fresh (fv t ∪ fv_list ts₁ ∪ fv_list ts₂) xs)
+(nd_xs : list.nodup xs)
+(fr_xs : finset.disjoint_list xs (fv t ∪ fv_list ts₁ ∪ fv_list ts₂))
 (len_xs_ts₁ : list.length xs = list.length ts₁)
 (lc_ts₁ : list.all_prop lc ts₁)
 (lc_ts₂ : list.all_prop lc ts₂)
 : t.open (ts₂ ++ ts₁) = subst_list xs ts₁ (t.open (ts₂ ++ xs.map varf)) :=
   begin
-    induction xs with hd tl ih generalizing ts₁ ts₂; simp;
-      simp [fresh, decidable.not_or_iff_and_not, and.assoc] at fr_xs,
-    begin
+    induction xs generalizing ts₁ ts₂; simp; simp [and.assoc] at fr_xs,
+    case list.nil {
       rw list.length at len_xs_ts₁,
       have ts₁_nil : ts₁ = [] := list.eq_nil_of_length_eq_zero len_xs_ts₁.symm,
       subst ts₁_nil,
       simp [subst_list]
-    end,
-    begin
+    },
+    case list.cons : hd tl ih {
       rcases fr_xs with
-        ⟨ hd_nin_tl, hd_nin_fv_t, hd_nin_fv_list_t₁, hd_nin_fv_list_t₂
-        , fresh_fv_t_tl, fresh_fv_list_ts₁_tl, fresh_fv_list_ts₂_tl
+        ⟨ hd_nin_fv_t, tl_nin_fv_t, hd_nin_fv_list_t₁, tl_nin_fv_list_ts₁
+        , hd_nin_fv_list_t₂, tl_nin_fv_list_ts₂
         ⟩,
       cases ts₁; simp at len_xs_ts₁,
       case list.nil { cases nat.eq_zero_of_add_eq_zero_right len_xs_ts₁ },
@@ -121,35 +120,37 @@ theorem subst_list_intro.rec
         cases lc_ts₁ with _ _ lc_hd₁ lc_tl₁,
         have lc_ts₂' : list.all_prop lc (ts₂ ++ [hd₁]) :=
           list.all_prop.append lc_ts₂ (list.all_prop.singleton lc_hd₁),
-        simp at fresh_fv_list_ts₁_tl,
-        cases fresh_fv_list_ts₁_tl with fresh_fv_hd₁_tl fresh_fv_list_tl₁_tl,
-        have : fresh (fv_list (ts₂ ++ [hd₁])) tl, by simp;
-          exact ⟨fresh_fv_hd₁_tl, fresh_fv_list_ts₂_tl⟩,
-        have fr_tl : fresh (fv t ∪ fv_list tl₁ ∪ fv_list (ts₂ ++ [hd₁])) tl :=
-          fresh_union.mpr ⟨fresh_union.mpr ⟨fresh_fv_t_tl, fresh_fv_list_tl₁_tl⟩, this⟩,
+        simp at tl_nin_fv_list_ts₁,
+        cases tl_nin_fv_list_ts₁ with tl_nin_fv_hd₁ tl_nin_fv_list_tl₁,
+        have : finset.disjoint_list tl (fv_list (ts₂ ++ [hd₁])), by
+          simp; exact ⟨tl_nin_fv_hd₁, tl_nin_fv_list_ts₂⟩,
+        have fr_tl : finset.disjoint_list tl (fv t ∪ fv_list tl₁ ∪ fv_list (ts₂ ++ [hd₁])) :=
+          finset.disjoint_list_union.mpr ⟨finset.disjoint_list_union.mpr ⟨tl_nin_fv_t, tl_nin_fv_list_tl₁⟩, this⟩,
         simp [subst_list],
         rw subst_open lc_hd₁,
         have : typ.open (ts₂ ++ [hd₁] ++ tl₁) t = subst_list tl tl₁ (typ.open (ts₂ ++ [hd₁] ++ list.map varf tl) t) :=
-          ih fr_tl len_xs_ts₁ lc_tl₁ lc_ts₂',
+          ih (list.nodup_of_nodup_cons nd_xs) fr_tl len_xs_ts₁ lc_tl₁ lc_ts₂',
         rw [list.append_cons_left, this, ←list.append_cons_left],
         rw subst_fresh hd_nin_fv_t,
         rw list.map_append (subst hd hd₁),
         rw subst_fresh_list hd_nin_fv_list_t₂,
         rw list.map,
-        rw subst_fresh_varf hd_nin_tl,
+        rw subst_fresh_varf (list.not_mem_of_nodup_cons nd_xs),
         simp [subst]
       }
-    end
+    }
   end
 
 -- Opening up a term `t` with `ts` is the same as opening up `t` with fresh
 -- names `xs` and then substituting `xs` for `ts`.
 theorem subst_list_intro
-(fr_xs : fresh (fv t ∪ fv_list ts) xs)
+(nd_xs : list.nodup xs)
+(fr_xs : finset.disjoint_list xs (fv t ∪ fv_list ts))
 (len_xs_ts : list.length xs = list.length ts)
 (lc_ts : list.all_prop lc ts)
 : typ.open ts t = subst_list xs ts (typ.open (list.map varf xs) t) :=
   @subst_list_intro.rec _ xs t ts [] _
+    nd_xs
     (by simp at fr_xs; simp [fr_xs])
     len_xs_ts
     lc_ts

@@ -1,5 +1,5 @@
-import fresh
-import typ
+import typ.defs
+import data.finset.disjoint_list
 
 namespace tts ------------------------------------------------------------------
 
@@ -38,13 +38,11 @@ def open_vars (xs : list V) (s : sch V) : typ V :=
 
 variables [_root_.decidable_eq V]
 
--- Property of a scheme body.
-def body (n : ℕ) (t : typ V) : Prop :=
-  ∃ (L : finset V), ∀ (xs : list V), n = xs.length → fresh L xs → (t.open_vars xs).lc
-
 -- Property of a well-formed scheme.
 def well_formed (s : sch V) : Prop :=
-  body s.arity s.type
+  ∃ (L : finset V), ∀ (xs : list V)
+  , s.arity = xs.length → xs.nodup → finset.disjoint_list xs L
+  → typ.lc (sch.open_vars xs s)
 
 end /- namespace -/ sch --------------------------------------------------------
 end /- namespace -/ tts --------------------------------------------------------

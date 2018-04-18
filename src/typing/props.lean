@@ -40,10 +40,10 @@ theorem typing_weaken_mid
       }
     },
     case typing.let_ : L₁ L₂ Γ ed eb s₁ t₂ F₁ F₂ ihd ihb {
-      refine let_ (λ xs (ar_eq_len : s₁.arity = xs.length) (fr : fresh (L₁ ∪ dom (Γ₁ ++ (Γ₂ ++ Γ₃))) xs), _)
+      refine let_ (λ xs (ar_eq_len : s₁.arity = xs.length) (nd : xs.nodup) (fr : finset.disjoint_list xs (L₁ ∪ dom (Γ₁ ++ (Γ₂ ++ Γ₃)))), _)
                   (λ x (p : x ∉ L₂ ∪ dom (Γ₁ ++ (Γ₂ ++ Γ₃))), _),
       show typing (Γ₁ ++ (Γ₂ ++ Γ₃)) ed (s₁.open_vars xs), {
-        exact ihd ar_eq_len (fresh_union.mp fr).1 Γh un_Γ₁_Γ₂_Γ₃
+        exact ihd ar_eq_len nd (finset.disjoint_list_union.mp fr).1 Γh un_Γ₁_Γ₂_Γ₃
       },
       show typing (insert (x :~ s₁) (Γ₁ ++ (Γ₂ ++ Γ₃))) (eb.open_var x) t₂, {
         induction Γh,
@@ -110,10 +110,10 @@ theorem typing_subst_weaken
     },
     case typing.let_ : L₁ L₂ Γ ed eb s₁ t₂ F₁ F₂ ihd ihb {
       dsimp at ihd, dsimp at ihb,
-      refine let_ (λ ys (ar_eq_len : s₁.arity = ys.length) (fr : fresh (L₁ ∪ dom (Γ₁ ++ (one (x :~ s) ++ Γ₂))) ys), _)
+      refine let_ (λ ys (ar_eq_len : s₁.arity = ys.length) (nd : ys.nodup) (fr : finset.disjoint_list ys (L₁ ∪ dom (Γ₁ ++ (one (x :~ s) ++ Γ₂)))), _)
                   (λ y (p : y ∉ L₂ ∪ dom (Γ₁ ++ (one (x :~ s) ++ Γ₂))), _),
       show typing (Γ₁ ++ Γ₂) (subst x e₂ ed) (s₁.open_vars ys), {
-        exact ihd ar_eq_len (fresh_union.mp fr).1 Γh @F lc_e₂
+        exact ihd ar_eq_len nd (finset.disjoint_list_union.mp fr).1 Γh @F lc_e₂
       },
       show typing (insert (y :~ s₁) (Γ₁ ++ Γ₂)) ((subst x e₂ eb).open_var y) t₂, {
         induction Γh,

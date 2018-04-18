@@ -1,5 +1,5 @@
 import .defs
-import data.finset.extra
+import data.finset.fresh
 
 namespace tts ------------------------------------------------------------------
 namespace exp ------------------------------------------------------------------

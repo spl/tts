@@ -23,7 +23,7 @@ inductive typing : env V → exp V → typ V → Prop
     → (∀ {x : V}, x ∉ L → typing (insert ⟨x, ⟨0, t₁⟩⟩ Γ) (eb.open_var x) t₂)
     → typing Γ (lam eb) (arr t₁ t₂)
   | let_ : Π {L₁ L₂ : finset V} {Γ : env V} {ed eb : exp V} {s₁ : sch V} {t₂ : typ V}
-    , (∀ {xs : list V}, s₁.arity = xs.length → fresh L₁ xs → typing Γ ed (s₁.open_vars xs))
+    , (∀ {xs : list V}, s₁.arity = xs.length → xs.nodup → finset.disjoint_list xs L₁ → typing Γ ed (s₁.open_vars xs))
     → (∀ {x : V}, x ∉ L₂ → typing (insert ⟨x, s₁⟩ Γ) (eb.open_var x) t₂)
     → typing Γ (let_ ed eb) t₂
 
