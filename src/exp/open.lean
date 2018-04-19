@@ -53,12 +53,10 @@ lemma open_lc.rec {e₁ e₂ : exp V} {k : ℕ} (l : lc e₁) : open.rec e₂ k 
       rw [rf, ra]
     },
     case lc.lam : L eb Fb rb {
-      cases finset.fresh L with x px,
-      rw open_lc.core (nat.succ_ne_zero k) (rb px)
+      rw open_lc.core (nat.succ_ne_zero k) (rb (finset.fresh_not_mem L))
     },
     case lc.let_ : L ed eb ld Fb rd rb {
-      cases finset.fresh L with x px,
-      rw [rd, open_lc.core (nat.succ_ne_zero k) (rb px)]
+      rw [rd, open_lc.core (nat.succ_ne_zero k) (rb (finset.fresh_not_mem L))]
     }
   end
 
