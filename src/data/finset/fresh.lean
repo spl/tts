@@ -24,9 +24,9 @@ def fresh_finset (s₁ : finset α) : ∀ n, Σ' (s₂ : finset α), card s₂ =
   | 0     := ⟨∅, rfl, rfl⟩
   | (n+1) :=
     match fresh_finset n with ⟨s₂, card_s₂_eq_n, s₂_disjoint_s₁⟩ :=
-      have fr : Σ' a, a ∉ s₂ ∪ s₁ := fresh (s₂ ∪ s₁),
-      have nm : fr.1 ∉ s₂ ∧ fr.1 ∉ s₁ := not_mem_union.mp fr.2,
-      ⟨ insert fr.1 s₂
+      have f : Σ' a, a ∉ s₂ ∪ s₁ := fresh (s₂ ∪ s₁),
+      have nm : f.1 ∉ s₂ ∧ f.1 ∉ s₁ := not_mem_union.mp f.2,
+      ⟨ insert f.1 s₂
       , card_s₂_eq_n ▸ card_insert_of_not_mem nm.1
       , by rw insert_inter_of_not_mem nm.2; exact s₂_disjoint_s₁
       ⟩
