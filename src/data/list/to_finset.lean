@@ -18,16 +18,7 @@ theorem to_finset_nil : to_finset (@nil α) = ∅ :=
 
 @[simp]
 theorem to_finset_cons : to_finset (a :: l) = insert a (to_finset l) :=
-  begin
-    apply finset.eq_of_veq,
-    simp [finset.insert_val', multiset.erase_dup_cons],
-    by_cases h : a ∈ l,
-    { simp [erase_dup_cons_of_mem h, erase_dup_cons_of_mem (mem_erase_dup.mpr h)] },
-    {
-      have h' : a ∉ erase_dup l := (not_iff_not_of_iff mem_erase_dup).mpr h,
-      simp [erase_dup_cons_of_not_mem h, erase_dup_cons_of_not_mem h']
-    }
-  end
+  finset.eq_of_veq $ by by_cases h : a ∈ l; simp [finset.insert_val', multiset.erase_dup_cons, h]
 
 theorem to_finset_card_of_nodup : l.nodup → l.to_finset.card = l.length :=
   begin
