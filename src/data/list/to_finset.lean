@@ -22,10 +22,14 @@ theorem to_finset_cons : to_finset (a :: l) = insert a (to_finset l) :=
 
 theorem to_finset_card_of_nodup : l.nodup → l.to_finset.card = l.length :=
   begin
-    induction l with a l' ih; simp,
-    intros a_nin_l' nodup_l',
-    have h : a ∉ l'.to_finset := (not_iff_not_of_iff mem_to_finset).mpr a_nin_l',
-    rw [finset.card_insert_of_not_mem h, ih nodup_l', nat.add_comm],
+    induction l,
+    case list.nil { simp },
+    case list.cons : _ _ ih {
+      intros nd,
+      simp at nd,
+      simp [finset.card_insert_of_not_mem ((not_iff_not_of_iff mem_to_finset).mpr nd.1),
+            ih nd.2]
+    }
   end
 
 end /- namespace -/ list -------------------------------------------------------
