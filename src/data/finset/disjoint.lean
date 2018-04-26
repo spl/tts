@@ -20,6 +20,18 @@ theorem disjoint_comm : disjoint s₁ s₂ ↔ disjoint s₂ s₁ :=
   by simp
 
 @[simp]
+theorem multiset_disjoint_zero {l : multiset α} : multiset.disjoint l 0 :=
+  by rw [multiset.disjoint_comm]; exact multiset.zero_disjoint l
+
+@[simp]
+theorem disjoint_singleton_left : disjoint (singleton a) s ↔ a ∉ s :=
+  by simp
+
+@[simp]
+theorem disjoint_singleton_right : disjoint s (singleton a) ↔ a ∉ s :=
+  by simp
+
+@[simp]
 theorem disjoint_insert_right : disjoint s₁ (insert a s₂) ↔ a ∉ s₁ ∧ disjoint s₁ s₂ :=
   by simp
 

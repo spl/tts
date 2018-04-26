@@ -20,6 +20,14 @@ variables [_root_.decidable_eq V]
 def fv (s : sch V) : finset V :=
   s.type.fv
 
+-- Substitute a free variable for a type in a scheme
+def subst (x : V) (t : typ V) (s : sch V) : sch V :=
+  ⟨s.arity, typ.subst x t s.type⟩
+
+-- Substitute a list of free variables for a list of types in a scheme
+def subst_list (xs : list V) (ts : list (typ V)) (s : sch V) : sch V :=
+  ⟨s.arity, typ.subst_list xs ts s.type⟩
+
 end /- namespace -/ sch --------------------------------------------------------
 
 -- Open a type scheme with a list of expressions for bound variables.
@@ -32,7 +40,6 @@ def sch.open (ts : list (typ V)) (s : sch V) : typ V :=
 namespace sch ------------------------------------------------------------------
 
 -- Open a type scheme with a list of free variables for bound variables.
-protected
 def open_vars (xs : list V) (s : sch V) : typ V :=
   s.type.open_vars xs
 
@@ -40,8 +47,11 @@ variables [_root_.decidable_eq V]
 
 -- Property of a well-formed scheme.
 def well_formed (s : sch V) : Prop :=
-  ∃ (L : finset V), ∀ (xs : list V)
-  , s.arity = xs.length → xs.nodup → finset.disjoint_list xs L
+  ∃ (L : finset V)
+  , ∀ {xs : list V}
+  , xs.nodup
+  → xs.length = s.arity
+  → finset.disjoint_list xs L
   → typ.lc (sch.open_vars xs s)
 
 end /- namespace -/ sch --------------------------------------------------------

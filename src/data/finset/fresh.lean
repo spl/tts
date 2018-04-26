@@ -1,4 +1,4 @@
-import data.list.to_finset
+import data.finset.disjoint_list
 
 namespace finset ---------------------------------------------------------------
 universes u
@@ -48,6 +48,10 @@ section decidable_eq -----------------------------------------------------------
 variables [decidable_eq α]
 
 @[simp]
+theorem fresh_finset_zero (s : finset α) : fresh_finset s 0 = ∅ :=
+  rfl
+
+@[simp]
 theorem fresh_finset_succ (s : finset α) (n : ℕ)
 : fresh_finset s (nat.succ n) = insert (fresh (fresh_finset s n ∪ s)) (fresh_finset s n) :=
   rfl
@@ -67,8 +71,12 @@ def fresh_finset_disjoint (s : finset α) : ∀ n, fresh_finset s n ∩ s = ∅
     by rw [fresh_finset_succ, insert_inter_of_not_mem p, fresh_finset_disjoint n]
 
 @[simp]
+theorem fresh_list_zero (s : finset α) : fresh_list s 0 = [] :=
+  rfl
+
+@[simp]
 theorem fresh_list_succ (s : finset α) (n : ℕ)
-: fresh_list s (nat.succ n) = fresh ((fresh_list s n).to_finset ∪ s) :: fresh_list s n :=
+: fresh_list s (n + 1) = fresh ((fresh_list s n).to_finset ∪ s) :: fresh_list s n :=
   rfl
 
 theorem fresh_list_length (s : finset α) : ∀ n, (fresh_list s n).length = n
@@ -81,11 +89,16 @@ theorem fresh_list_nodup (s : finset α) : ∀ n, (fresh_list s n).nodup
     let ⟨p, _⟩ := not_mem_union.mp (fresh_not_mem ((fresh_list s n).to_finset ∪ s)) in
     list.nodup_cons_of_nodup ((not_iff_not_of_iff list.mem_to_finset).mp p) (fresh_list_nodup n)
 
-theorem fresh_list_disjoint (s : finset α) : ∀ n, (fresh_list s n).to_finset ∩ s = ∅
+theorem fresh_list_disjoint (s : finset α) : ∀ n, disjoint_list (fresh_list s n) s
   | 0     := rfl
   | (n+1) :=
     let ⟨_, p⟩ := not_mem_union.mp (fresh_not_mem ((fresh_list s n).to_finset ∪ s)) in
-    by rw [fresh_list_succ, list.to_finset_cons, insert_inter_of_not_mem p, fresh_list_disjoint n]
+    by rw [fresh_list_succ, disjoint_list_cons]; exact ⟨p, fresh_list_disjoint n⟩
+
+theorem fresh_list_disjoint_union {s₁ s₂ : finset α} {n}
+: disjoint_list (fresh_list (s₁ ∪ s₂) n) (s₁ ∪ s₂)
+↔ disjoint_list (fresh_list (s₁ ∪ s₂) n) s₁ ∧ disjoint_list (fresh_list (s₁ ∪ s₂) n) s₂ :=
+  by induction n; simp
 
 end /- section -/ decidable_eq -------------------------------------------------
 

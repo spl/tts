@@ -23,4 +23,8 @@ theorem disjoint_list_cons : disjoint_list (a :: l) s ↔ a ∉ s ∧ disjoint_l
 theorem disjoint_list_union : disjoint_list l (s₁ ∪ s₂) ↔ disjoint_list l s₁ ∧ disjoint_list l s₂ :=
   by simp
 
+@[simp]
+theorem disjoint_list_singleton : disjoint_list l (singleton a) ↔ a ∉ l :=
+  by simp
+
 end /- namespace -/ finset -----------------------------------------------------

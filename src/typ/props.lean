@@ -37,15 +37,15 @@ theorem fv_list_append : fv_list (ts₁ ++ ts₂) = fv_list ts₁ ∪ fv_list ts
   by induction ts₁ with _ _ ih; [simp, simp [ih]]
 
 -- Substitution with a fresh name is the identity
-theorem subst_fresh : x ∉ fv t₁ → subst x t₂ t₁ = t₁ :=
+@[simp]
+theorem subst_fresh (h : x ∉ fv t₁) : subst x t₂ t₁ = t₁ :=
   begin
-    intro p,
-    induction t₁; rw subst; simp at p,
+    induction t₁; rw subst; simp at h,
     case typ.varf : y {
-      rw if_neg (ne.symm p)
+      rw if_neg (ne.symm h)
     },
     case typ.arr : t₁ t₂ ih₁ ih₂ {
-      rw [ih₁ p.1, ih₂ p.2]
+      rw [ih₁ h.1, ih₂ h.2]
     }
   end
 
@@ -96,8 +96,8 @@ theorem subst_open_vars (p : x ∉ xs) (lc_t₂ : lc t₂)
 
 theorem subst_list_intro.rec
 (nd_xs : list.nodup xs)
-(fr_xs : finset.disjoint_list xs (fv t ∪ fv_list ts₁ ∪ fv_list ts₂))
 (len_xs_ts₁ : list.length xs = list.length ts₁)
+(fr_xs : finset.disjoint_list xs (fv t ∪ fv_list ts₁ ∪ fv_list ts₂))
 (lc_ts₁ : list.all_prop lc ts₁)
 (lc_ts₂ : list.all_prop lc ts₂)
 : t.open (ts₂ ++ ts₁) = subst_list xs ts₁ (t.open (ts₂ ++ xs.map varf)) :=
@@ -129,7 +129,7 @@ theorem subst_list_intro.rec
         simp [subst_list],
         rw subst_open lc_hd₁,
         have : typ.open (ts₂ ++ [hd₁] ++ tl₁) t = subst_list tl tl₁ (typ.open (ts₂ ++ [hd₁] ++ list.map varf tl) t) :=
-          ih (list.nodup_of_nodup_cons nd_xs) fr_tl len_xs_ts₁ lc_tl₁ lc_ts₂',
+          ih (list.nodup_of_nodup_cons nd_xs) len_xs_ts₁ fr_tl lc_tl₁ lc_ts₂',
         rw [list.append_cons_left, this, ←list.append_cons_left],
         rw subst_fresh hd_nin_fv_t,
         rw list.map_append (subst hd hd₁),
@@ -145,14 +145,14 @@ theorem subst_list_intro.rec
 -- names `xs` and then substituting `xs` for `ts`.
 theorem subst_list_intro
 (nd_xs : list.nodup xs)
-(fr_xs : finset.disjoint_list xs (fv t ∪ fv_list ts))
 (len_xs_ts : list.length xs = list.length ts)
+(fr_xs : finset.disjoint_list xs (fv t ∪ fv_list ts))
 (lc_ts : list.all_prop lc ts)
-: typ.open ts t = subst_list xs ts (typ.open (list.map varf xs) t) :=
+: typ.open ts t = subst_list xs ts (typ.open_vars xs t) :=
   @subst_list_intro.rec _ xs t ts [] _
     nd_xs
-    (by simp at fr_xs; simp [fr_xs])
     len_xs_ts
+    (by simp at fr_xs; simp [fr_xs])
     lc_ts
     (by constructor)
 
