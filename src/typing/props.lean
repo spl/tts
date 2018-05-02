@@ -1,4 +1,5 @@
 import .defs
+import sch.props
 
 namespace tts ------------------------------------------------------------------
 namespace typing ---------------------------------------------------------------
@@ -136,6 +137,59 @@ theorem subst
     rw ←@append_empty_left _ (one (x :~ s) ++ Γ) at T,
     rw ←@append_empty_left _ Γ,
     exact subst_weaken T @F lc_e₂
+  end
+
+-- The following three theorems show the regularity of typing.
+
+-- Typing implies a unique environment
+theorem uniq_env (T : typing Γ e t) : Γ.uniq :=
+  begin
+    induction T; try { assumption },
+    case typing.lam : L _ _ _ _ _ _ ihb {
+      exact (uniq_insert.mp (ihb (finset.fresh_not_mem L))).2
+    },
+    case typing.let_ : _ Lb _ _ _ _ _ _ _ _ ihb {
+      exact (uniq_insert.mp (ihb (finset.fresh_not_mem Lb))).2
+    }
+  end
+
+-- Typing implies a locally-closed expression
+theorem lc_exp (T : typing Γ e t) : e.lc :=
+  begin
+    induction T; simp,
+    case typing.app {
+      tauto
+    },
+    case typing.lam {
+      tauto
+    },
+    case typing.let_ : Ld _ _ _ _ sd _ _ _ ihd {
+      split,
+      exact ihd (finset.fresh_list_length Ld sd.arity)
+                (finset.fresh_list_nodup Ld sd.arity)
+                (finset.fresh_list_disjoint Ld sd.arity),
+      tauto
+    }
+  end
+
+-- Typing implies a locally-closed type
+theorem lc_typ (T : typing Γ e t) : t.lc :=
+  begin
+    induction T,
+    case typing.varf : _ _ _ _ _ _ ln_ts lc_ts wf_s {
+      exact sch.open_lc wf_s ln_ts lc_ts
+    },
+    case typing.app : _ _ _ _ _ _ _ ihf {
+      simp at ihf,
+      tauto
+    },
+    case typing.lam : L _ _ _ _ lc_t₁ _ ihb {
+      simp,
+      exact ⟨lc_t₁, ihb (finset.fresh_not_mem L)⟩
+    },
+    case typing.let_ : _ Lb _ _ eb _ _ _ _ _ ihb {
+      exact ihb (finset.fresh_not_mem Lb)
+    }
   end
 
 end /- namespace -/ typing -----------------------------------------------------
