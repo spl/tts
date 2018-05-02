@@ -52,7 +52,7 @@ theorem subst_well_formed (lc_t : typ.lc t) (wf_s : well_formed s)
 theorem open_lc
 (wf_s : well_formed s)
 (len_s_ts : s.arity = ts.length)
-(lc_ts : list.all_prop typ.lc ts)
+(lc_ts : ∀ t ∈ ts, typ.lc t)
 : typ.lc (sch.open ts s) :=
   begin
     unfold sch.open,

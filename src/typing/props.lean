@@ -21,9 +21,9 @@ theorem typing_weaken_mid
     generalize Γh : Γ₁ ++ Γ₃ = Γ₁₃,
     intros T un_Γ₁_Γ₂_Γ₃,
     induction T generalizing Γ₁ Γ₃,
-    case typing.varf : Γ x s ts un_Γ b lc_ts wf_s {
+    case typing.varf : Γ x s ts un_Γ b ln_ts lc_ts wf_s {
       induction Γh,
-      exact varf un_Γ₁_Γ₂_Γ₃ (mem_append_weaken b) lc_ts wf_s,
+      exact varf un_Γ₁_Γ₂_Γ₃ (mem_append_weaken b) ln_ts lc_ts wf_s,
     },
     case typing.app : Γ ef ea t₁ t₂ Tf Ta ihf iha {
       exact app (ihf Γh un_Γ₁_Γ₂_Γ₃) (iha Γh un_Γ₁_Γ₂_Γ₃),
@@ -71,25 +71,26 @@ variables [finset.has_fresh V]
 
 theorem typing_subst_weaken
 : typing (Γ₁ ++ (one (x :~ s) ++ Γ₂)) e₁ t
-→ (∀ {ts}, lc_types s.arity ts → typing Γ₂ e₂ (s.open ts))
+→ (∀ {ts : list (typ V)}, s.arity = ts.length → (∀ t ∈ ts, typ.lc t) → typing Γ₂ e₂ (s.open ts))
 → e₂.lc
 → typing (Γ₁ ++ Γ₂) (subst x e₂ e₁) t :=
   begin
     generalize Γh : Γ₁ ++ (one (x :~ s) ++ Γ₂) = Γ₁₂,
     intros T F lc_e₂,
     induction T generalizing Γ₁ Γ₂ x s e₂,
-    case typing.varf : Γ y s₁ ts un_Γ b lc_ts wf_s₁ {
+    case typing.varf : Γ y s₁ ts un_Γ b ln_ts lc_ts wf_s₁ {
       by_cases h : x = y; induction Γh,
       { /- h : x = y -/
         subst h,
         rw subst.varf.eq,
         cases eq_sch_of_uniq_one_mid_of_mem_one_mid un_Γ b,
-        apply typing_weaken (F lc_ts) (uniq_remove_mid un_Γ)
+        apply typing_weaken (F ln_ts lc_ts) (uniq_remove_mid un_Γ)
       },
       { /- h : x ≠ y -/
         rw subst.varf.ne h,
         exact varf (uniq_remove_mid un_Γ)
                    (mem_remove_mid_of_ne_var (ne.symm h) b)
+                   ln_ts
                    lc_ts
                    wf_s₁
       }
@@ -128,7 +129,7 @@ theorem typing_subst_weaken
 
 theorem typing_subst
 : typing (one (x :~ s) ++ Γ) e₁ t
-→ (∀ {ts}, lc_types s.arity ts → typing Γ e₂ (s.open ts))
+→ (∀ {ts : list (typ V)}, s.arity = ts.length → (∀ t ∈ ts, typ.lc t) → typing Γ e₂ (s.open ts))
 → e₂.lc
 → typing Γ (subst x e₂ e₁) t :=
   begin

@@ -60,8 +60,5 @@ inductive lc : typ V → Prop
   | varf : Π (x : V),                         lc (varf x)
   | arr  : Π {t₁ t₂ : typ V}, lc t₁ → lc t₂ → lc (arr t₁ t₂)
 
-def lc_types (n : ℕ) (l : list (typ V)) : Prop :=
-  n = l.length ∧ l.all_prop lc
-
 end /- namespace -/ typ --------------------------------------------------------
 end /- namespace -/ tts --------------------------------------------------------

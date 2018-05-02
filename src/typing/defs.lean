@@ -11,7 +11,8 @@ inductive typing : env V → exp V → typ V → Prop
   | varf : Π {Γ : env V} {x : V} {s : sch V} {ts : list (typ V)}
     , Γ.uniq
     → x :~ s ∈ Γ
-    → lc_types s.arity ts
+    → s.arity = ts.length
+    → (∀ t ∈ ts, typ.lc t)
     → s.well_formed
     → typing Γ (varf x) (s.open ts)
   | app : Π {Γ : env V} {ef ea : exp V} {t₁ t₂ : typ V}
