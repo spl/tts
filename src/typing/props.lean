@@ -13,7 +13,7 @@ open exp
 open typ
 open env
 
-theorem typing_weaken_mid
+theorem weaken_mid
 : typing (Γ₁ ++ Γ₃) e t
 → uniq (Γ₁ ++ (Γ₂ ++ Γ₃))
 → typing (Γ₁ ++ (Γ₂ ++ Γ₃)) e t :=
@@ -56,7 +56,7 @@ theorem typing_weaken_mid
     }
   end
 
-theorem typing_weaken
+theorem weaken
 : typing Γ₂ e t
 → uniq (Γ₁ ++ Γ₂)
 → typing (Γ₁ ++ Γ₂) e t :=
@@ -64,12 +64,12 @@ theorem typing_weaken
     intro T,
     rw ←@append_empty_left _ Γ₂ at T,
     rw ←@append_empty_left _ (Γ₁ ++ Γ₂),
-    exact typing_weaken_mid T
+    exact weaken_mid T
   end
 
 variables [finset.has_fresh V]
 
-theorem typing_subst_weaken
+theorem subst_weaken
 : typing (Γ₁ ++ (one (x :~ s) ++ Γ₂)) e₁ t
 → (∀ {ts : list (typ V)}, s.arity = ts.length → (∀ t ∈ ts, typ.lc t) → typing Γ₂ e₂ (s.open ts))
 → e₂.lc
@@ -84,7 +84,7 @@ theorem typing_subst_weaken
         subst h,
         rw subst.varf.eq,
         cases eq_sch_of_uniq_one_mid_of_mem_one_mid un_Γ b,
-        apply typing_weaken (F ln_ts lc_ts) (uniq_remove_mid un_Γ)
+        apply weaken (F ln_ts lc_ts) (uniq_remove_mid un_Γ)
       },
       { /- h : x ≠ y -/
         rw subst.varf.ne h,
@@ -127,7 +127,7 @@ theorem typing_subst_weaken
     }
   end
 
-theorem typing_subst
+theorem subst
 : typing (one (x :~ s) ++ Γ) e₁ t
 → (∀ {ts : list (typ V)}, s.arity = ts.length → (∀ t ∈ ts, typ.lc t) → typing Γ e₂ (s.open ts))
 → e₂.lc
@@ -136,7 +136,7 @@ theorem typing_subst
     intros T F lc_e₂,
     rw ←@append_empty_left _ (one (x :~ s) ++ Γ) at T,
     rw ←@append_empty_left _ Γ,
-    exact typing_subst_weaken T @F lc_e₂
+    exact subst_weaken T @F lc_e₂
   end
 
 end /- namespace -/ typing -----------------------------------------------------
