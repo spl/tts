@@ -5,14 +5,6 @@ namespace tts ------------------------------------------------------------------
 namespace exp ------------------------------------------------------------------
 variables {V : Type} -- Type of variable names
 
--- Properties of lc
-
-lemma lc.app.unfold {ef ea : exp V} (l : lc (app ef ea)) : lc ef ∧ lc ea :=
-  by cases l with _ _ _ l₁ l₂; exact ⟨l₁, l₂⟩
-
-lemma lc.lam.unfold {eb : exp V} (l : lc (lam eb)) : ∃ (L : finset V), ∀ {x : V}, x ∉ L → lc (eb.open_var x) :=
-  by cases l with _ _ _ _ _ L _ F; exact ⟨L, @F⟩
-
 -- Properties of open
 
 lemma open_lc.core {e₁ e₂ e₃ : exp V} {k₂ k₃ : ℕ} (p : k₂ ≠ k₃)
