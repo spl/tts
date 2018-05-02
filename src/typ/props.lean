@@ -1,4 +1,4 @@
-import .defs
+import .lc
 import data.finset.disjoint_list
 import logic.extra
 
@@ -161,8 +161,8 @@ theorem subst_list_intro
 theorem subst_lc (l₂ : lc t₂) (l₁ : lc t₁) : lc (subst x t₂ t₁) :=
   begin
     induction l₁; simp [subst],
-    case lc.varf : y { by_cases h : y = x; simp [h], exact l₂, exact lc.varf y },
-    case lc.arr : _ _ _ _ ih₁ ih₂ { exact lc.arr ih₁ ih₂ }
+    case lc.varf : y { by_cases h : y = x; simp [h], exact l₂ },
+    case lc.arr { tauto }
   end
 
 -- A type substituted with a list of types is locally-closed if all type
