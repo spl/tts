@@ -11,7 +11,7 @@ variables {t t₁ t₂ : typ V} -- Types
 variables {ts ts₁ ts₂ : list (typ V)} -- Lists of types
 
 -- Opening a locally-closed type is the identity
-theorem open_of_lc (p : lc t) : typ.open ts t = t :=
+theorem open_lc (p : lc t) : typ.open ts t = t :=
   by induction t; cases p; simp [typ.open, *]
 
 variables [_root_.decidable_eq V]
@@ -81,7 +81,7 @@ theorem subst_open (lc_t₂ : lc t₂)
       simp [subst, list.nth_of_map, typ.open]
     },
     case typ.varf : y {
-      simp [subst, if_distrib (typ.open (list.map (subst x t₂) ts)), open_of_lc lc_t₂],
+      simp [subst, if_distrib (typ.open (list.map (subst x t₂) ts)), open_lc lc_t₂],
       congr
     },
     case typ.arr : t₁ t₂ ih₁ ih₂ {
