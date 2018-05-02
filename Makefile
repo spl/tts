@@ -57,12 +57,14 @@ version: $(LEAN)
 	$(LEAN) --version
 
 clean:
-	@find src _target -name '*.d' -or -name '*.clean' -or -name '*.olean' -delete
-	@find src _target -type d -empty -delete
+	find src -name '*.d' -or -name '*.clean' -or -name '*.olean' -delete
+	find src -type d -empty -delete
 
-clean-lean: clean $(LEAN_BUILD_DIR)/Makefile
-	@make clean -C $(LEAN_BUILD_DIR)
-	@make clean-olean -C $(LEAN_BUILD_DIR)
+realclean: clean $(LEAN_BUILD_DIR)/Makefile
+	find _target -name '*.d' -or -name '*.clean' -or -name '*.olean' -delete
+	find _target -type d -empty -delete
+	make clean -C $(LEAN_BUILD_DIR)
+	make clean-olean -C $(LEAN_BUILD_DIR)
 
 #-------------------------------------------------------------------------------
 
