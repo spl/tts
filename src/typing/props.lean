@@ -39,13 +39,13 @@ theorem weaken_mid
         { rw append_insert, exact uniq_insert.mpr ⟨p.2, un_Γ₁_Γ₂_Γ₃⟩ }
       }
     },
-    case typing.let_ : L₁ L₂ Γ ed eb s₁ t₂ F₁ F₂ ihd ihb {
-      refine let_ (λ xs (ar_eq_len : s₁.arity = xs.length) (nd : xs.nodup) (fr : finset.disjoint_list xs (L₁ ∪ dom (Γ₁ ++ (Γ₂ ++ Γ₃)))), _)
-                  (λ x (p : x ∉ L₂ ∪ dom (Γ₁ ++ (Γ₂ ++ Γ₃))), _),
-      show typing (Γ₁ ++ (Γ₂ ++ Γ₃)) ed (s₁.open_vars xs), {
-        exact ihd ar_eq_len nd (finset.disjoint_list_union.mp fr).1 Γh un_Γ₁_Γ₂_Γ₃
+    case typing.let_ : Ld Lb Γ ed eb sd tb Fd Fb ihd ihb {
+      refine let_ (λ xs (ln_xs : xs.length = sd.arity) (nd : xs.nodup) (fr : finset.disjoint_list xs (Ld ∪ dom (Γ₁ ++ (Γ₂ ++ Γ₃)))), _)
+                  (λ x (p : x ∉ Lb ∪ dom (Γ₁ ++ (Γ₂ ++ Γ₃))), _),
+      show typing (Γ₁ ++ (Γ₂ ++ Γ₃)) ed (sd.open_vars xs), {
+        exact ihd ln_xs nd (finset.disjoint_list_union.mp fr).1 Γh un_Γ₁_Γ₂_Γ₃
       },
-      show typing (insert (x :~ s₁) (Γ₁ ++ (Γ₂ ++ Γ₃))) (eb.open_var x) t₂, {
+      show typing (insert (x :~ sd) (Γ₁ ++ (Γ₂ ++ Γ₃))) (eb.open_var x) tb, {
         induction Γh,
         rw [finset.mem_union, decidable.not_or_iff_and_not] at p,
         rw ←append_insert,
@@ -109,14 +109,13 @@ theorem subst_weaken
         exact ihb p.1 (by simp) @F lc_e₂
       }
     },
-    case typing.let_ : L₁ L₂ Γ ed eb s₁ t₂ F₁ F₂ ihd ihb {
-      dsimp at ihd, dsimp at ihb,
-      refine let_ (λ ys (ar_eq_len : s₁.arity = ys.length) (nd : ys.nodup) (fr : finset.disjoint_list ys (L₁ ∪ dom (Γ₁ ++ (one (x :~ s) ++ Γ₂)))), _)
-                  (λ y (p : y ∉ L₂ ∪ dom (Γ₁ ++ (one (x :~ s) ++ Γ₂))), _),
-      show typing (Γ₁ ++ Γ₂) (subst x e₂ ed) (s₁.open_vars ys), {
-        exact ihd ar_eq_len nd (finset.disjoint_list_union.mp fr).1 Γh @F lc_e₂
+    case typing.let_ : Ld Lb Γ ed eb sd tb Fd Fb ihd ihb {
+      refine let_ (λ ys (ln_ys : ys.length = sd.arity) (nd : ys.nodup) (fr : finset.disjoint_list ys (Ld ∪ dom (Γ₁ ++ (one (x :~ s) ++ Γ₂)))), _)
+                  (λ y (p : y ∉ Lb ∪ dom (Γ₁ ++ (one (x :~ s) ++ Γ₂))), _),
+      show typing (Γ₁ ++ Γ₂) (subst x e₂ ed) (sd.open_vars ys), {
+        exact ihd ln_ys nd (finset.disjoint_list_union.mp fr).1 Γh @F lc_e₂
       },
-      show typing (insert (y :~ s₁) (Γ₁ ++ Γ₂)) ((subst x e₂ eb).open_var y) t₂, {
+      show typing (insert (y :~ sd) (Γ₁ ++ Γ₂)) ((subst x e₂ eb).open_var y) tb, {
         induction Γh,
         rw [finset.mem_union, decidable.not_or_iff_and_not] at p,
         have : y ≠ x := ne_of_not_mem_dom_mid p.2,
