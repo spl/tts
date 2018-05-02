@@ -1,5 +1,5 @@
-import .defs
-import sch.props
+import .core
+import sch
 
 namespace tts ------------------------------------------------------------------
 namespace typing ---------------------------------------------------------------

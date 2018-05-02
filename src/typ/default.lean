@@ -1,1 +1,1 @@
-import .defs
+import .props

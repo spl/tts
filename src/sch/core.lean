@@ -1,4 +1,4 @@
-import typ.defs
+import typ.core
 import data.finset.disjoint_list
 
 namespace tts ------------------------------------------------------------------

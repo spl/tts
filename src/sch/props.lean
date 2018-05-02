@@ -1,5 +1,5 @@
-import .defs
-import typ.props
+import .core
+import typ
 import data.finset.fresh
 
 namespace tts ------------------------------------------------------------------

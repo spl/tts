@@ -1,4 +1,4 @@
-import .defs
+import .core
 import data.finset.fresh
 
 namespace tts ------------------------------------------------------------------

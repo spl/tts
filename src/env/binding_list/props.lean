@@ -1,4 +1,4 @@
-import .defs
+import .core
 import logic.basic
 
 open function
