@@ -1,4 +1,6 @@
+import .fv
 import .lc
+import typ.open
 import data.finset.disjoint_list
 import logic.extra
 
@@ -10,37 +12,13 @@ variables {xs : list V} -- List of variable names
 variables {t t₁ t₂ : typ V} -- Types
 variables {ts ts₁ ts₂ : list (typ V)} -- Lists of types
 
--- Opening a locally-closed type is the identity
-theorem open_lc (p : lc t) : typ.open ts t = t :=
-  by induction t; cases p; simp [typ.open, *]
-
 variables [_root_.decidable_eq V]
-
-@[simp]
-theorem fv.not_mem_varf : x₁ ∉ fv (varf x₂) ↔ x₁ ≠ x₂ :=
-  by simp [fv]
-
-@[simp]
-theorem fv.not_mem_arr : x ∉ fv (arr t₁ t₂) ↔ x ∉ fv t₁ ∧ x ∉ fv t₂ :=
-  by simp [fv, decidable.not_or_iff_and_not]
-
-@[simp]
-theorem fv_list_nil : fv_list (@list.nil (typ V)) = ∅ :=
-  rfl
-
-@[simp]
-theorem fv_list_cons : fv_list (t :: ts) = fv t ∪ fv_list ts :=
-  rfl
-
-@[simp]
-theorem fv_list_append : fv_list (ts₁ ++ ts₂) = fv_list ts₁ ∪ fv_list ts₂ :=
-  by induction ts₁ with _ _ ih; [simp, simp [ih]]
 
 -- Substitution with a fresh name is the identity
 @[simp]
 theorem subst_fresh (h : x ∉ fv t₁) : subst x t₂ t₁ = t₁ :=
   begin
-    induction t₁; rw subst; simp at h,
+    induction t₁; rw subst; simp [decidable.not_or_iff_and_not] at h,
     case typ.varf : y {
       rw if_neg (ne.symm h)
     },
@@ -67,7 +45,7 @@ theorem subst_fresh_varf (p : x ∉ xs)
 
 theorem subst_list_fresh (p : finset.disjoint_list xs (fv t)) : subst_list xs ts t = t :=
   begin
-    induction xs with _ _ ih generalizing ts t; [skip, cases ts]; simp [subst_list],
+    induction xs with _ _ ih generalizing ts t; [skip, cases ts]; simp,
     simp at p,
     rw [subst_fresh p.1, ih p.2]
   end
@@ -76,16 +54,16 @@ theorem subst_list_fresh (p : finset.disjoint_list xs (fv t)) : subst_list xs ts
 theorem subst_open (lc_t₂ : lc t₂)
 : subst x t₂ (typ.open ts t₁) = typ.open (list.map (subst x t₂) ts) (subst x t₂ t₁) :=
   begin
-    induction t₁; simp [typ.open],
-    case typ.varb : n {
-      simp [subst, list.nth_of_map, typ.open]
+    induction t₁; simp,
+    case typ.varb {
+      simp [list.nth_of_map]
     },
-    case typ.varf : y {
-      simp [subst, if_distrib (typ.open (list.map (subst x t₂) ts)), open_lc lc_t₂],
+    case typ.varf {
+      simp [if_distrib (typ.open (list.map (subst x t₂) ts)), open_lc lc_t₂],
       congr
     },
-    case typ.arr : t₁ t₂ ih₁ ih₂ {
-      simp [subst, ih₁, ih₂, typ.open]
+    case typ.arr : _ _ ih₁ ih₂ {
+      simp [ih₁, ih₂]
     }
   end
 
@@ -107,7 +85,7 @@ theorem subst_list_intro.rec
       rw list.length at len_xs_ts₁,
       have ts₁_nil : ts₁ = [] := list.eq_nil_of_length_eq_zero len_xs_ts₁.symm,
       subst ts₁_nil,
-      simp [subst_list]
+      simp
     },
     case list.cons : hd tl ih {
       rcases fr_xs with
@@ -126,7 +104,7 @@ theorem subst_list_intro.rec
           simp; exact ⟨tl_nin_fv_hd₁, tl_nin_fv_list_ts₂⟩,
         have fr_tl : finset.disjoint_list tl (fv t ∪ fv_list tl₁ ∪ fv_list (ts₂ ++ [hd₁])) :=
           finset.disjoint_list_union.mpr ⟨finset.disjoint_list_union.mpr ⟨tl_nin_fv_t, tl_nin_fv_list_tl₁⟩, this⟩,
-        simp [subst_list],
+        simp,
         rw subst_open lc_hd₁,
         have : typ.open (ts₂ ++ [hd₁] ++ tl₁) t = subst_list tl tl₁ (typ.open (ts₂ ++ [hd₁] ++ list.map varf tl) t) :=
           ih (list.nodup_of_nodup_cons nd_xs) len_xs_ts₁ fr_tl lc_tl₁ lc_ts₂',
@@ -173,8 +151,7 @@ theorem subst_list_lc
 (lc_t : lc t)
 : lc (subst_list xs ts t) :=
   begin
-    induction xs with _ _ ih generalizing ts t; cases ts; simp [subst_list];
-      try { assumption },
+    induction xs with _ _ ih generalizing ts t; cases ts; simp; try { assumption },
     cases list.forall_mem_cons.mp lc_ts with lc_ts_hd lc_ts_tl,
     exact ih (list.length_tail_eq_length_tail len_xs_ts) lc_ts_tl
       (subst_lc lc_ts_hd lc_t)

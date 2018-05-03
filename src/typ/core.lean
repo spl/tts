@@ -16,22 +16,27 @@ namespace typ ------------------------------------------------------------------
 variables [_root_.decidable_eq V]
 
 -- Free variables of a type
+@[simp]
 def fv : typ V → finset V
   | (varb i)    := ∅
   | (varf x)    := {x}
   | (arr t₁ t₂) := fv t₁ ∪ fv t₂
 
 -- Free variables of a list of types
-def fv_list : list (typ V) → finset V :=
-  list.foldr (λ t acc, fv t ∪ acc) ∅
+@[simp]
+def fv_list : list (typ V) → finset V
+  | []        := ∅
+  | (t :: ts) := fv t ∪ fv_list ts
 
 -- Substitute a free variable for a type in a type
+@[simp]
 def subst (y : V) (t : typ V) : typ V → typ V
   | (varb i)    := varb i
   | (varf x)    := if x = y then t else varf x
   | (arr t₁ t₂) := arr (subst t₁) (subst t₂)
 
 -- Substitute a list of free variables for a list of types in a type
+@[simp]
 def subst_list : list V → list (typ V) → typ V → typ V
   | (x :: xs) (t₂ :: ts₂) t₁ := subst_list xs ts₂ (subst x t₂ t₁)
   | _         _           t₁ := t₁
@@ -43,6 +48,7 @@ open typ
 -- Open a type with a list of expressions for bound variables.
 -- Note: This definition is defined with an explicit namespace to avoid conflict
 -- with the keyword `open`.
+@[simp]
 protected
 def typ.open (ts : list (typ V)) : typ V → typ V
   | (varb i)    := (ts.nth i).get_or_else (varb 0)
