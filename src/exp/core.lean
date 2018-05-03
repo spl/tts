@@ -66,7 +66,19 @@ inductive lc : exp V → Prop
   | let_ : Π {L : finset V} {ed eb : exp V}, lc ed → (∀ {x : V}, x ∉ L → lc (eb.open_var x)) → lc (let_ ed eb)
 
 def lc_body (eb : exp V) : Prop :=
-  ∃ L : finset V, ∀ x : V, x ∉ L → lc (eb.open_var x)
+  ∃ (L : finset V), ∀ {x : V}, x ∉ L → (eb.open_var x).lc
+
+-- Grammar of values
+inductive value : exp V → Prop
+  | lam  : Π {e : exp V}, (lam e).lc → value (lam e)
+
+-- Reduction rules
+inductive red : exp V → exp V → Prop
+  | app₁  : Π {e₁ e₁' e₂ : exp V}, red e₁ e₁' →  e₂.lc →           red (app e₁ e₂)       (app e₁' e₂)
+  | app₂  : Π {e₁ e₂ e₂' : exp V}, e₁.value →    red e₂ e₂' →      red (app e₁ e₂)       (app e₁ e₂')
+  | lam   : Π {e₁ e₂ : exp V},     (lam e₁).lc → e₂.value →        red (app (lam e₁) e₂) (e₁.open e₂)
+  | let₁  : Π {e₁ e₁' e₂ : exp V}, red e₁ e₁' →  e₂.lc_body →      red (let_ e₁ e₂)      (let_ e₁' e₂)
+  | let₂  : Π {e₁ e₂ : exp V},     e₁.value →    (let_ e₁ e₂).lc → red (let_ e₁ e₂)      (e₂.open e₁)
 
 end /- namespace -/ exp --------------------------------------------------------
 end /- namespace -/ tts --------------------------------------------------------
