@@ -4,14 +4,15 @@ import data.finset.fresh
 
 namespace tts ------------------------------------------------------------------
 namespace sch ------------------------------------------------------------------
-variables {n : ℕ}
+variables {n : ℕ} -- Natural numbers
 variables {V : Type} -- Type of variable names
 variables {x x₁ x₂ : V} -- Variable names
 variables {xs : list V} -- List of variable names
 variables {t t₁ t₂ : typ V} -- Types
 variables {ts : list (typ V)} -- Lists of types
 variables {s : sch V} -- Schemes
-variables [_root_.decidable_eq V] [finset.has_fresh V]
+
+variables [_root_.decidable_eq V]
 
 -- Substitution with a fresh name is the identity
 theorem subst_fresh (h : x ∉ fv s) : subst x t s = s :=
@@ -45,25 +46,6 @@ theorem subst_well_formed (lc_t : typ.lc t) (wf_s : well_formed s)
     simp at dj,
     rw subst_open_vars dj.2 lc_t,
     exact typ.subst_lc lc_t (wf nd (by rwa subst_arity at ln) dj.1),
-  end
-
--- A well-formed schema opened with a list of types is locally-closed if all
--- types are locally-closed.
-theorem open_lc
-(wf_s : well_formed s)
-(ln_ts : s.arity = ts.length)
-(lc_ts : ∀ t ∈ ts, typ.lc t)
-: typ.lc (sch.open ts s) :=
-  begin
-    unfold sch.open,
-    cases wf_s with L wf,
-    let L := typ.fv (s.type) ∪ typ.fv_list ts ∪ L,
-    let nd := finset.fresh_list_nodup L ts.length,
-    let ln := finset.fresh_list_length L ts.length,
-    let dj := finset.fresh_list_disjoint_union.mp (finset.fresh_list_disjoint L ts.length),
-    rw typ.subst_list_intro nd ln dj.1 lc_ts,
-    rw ln_ts at wf,
-    exact typ.subst_list_lc ln lc_ts (wf nd ln dj.2)
   end
 
 end /- namespace -/ sch --------------------------------------------------------
