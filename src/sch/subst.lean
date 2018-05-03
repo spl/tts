@@ -27,6 +27,7 @@ theorem subst_open (lc_t : typ.lc t)
 : typ.subst x t (sch.open ts s) = sch.open (list.map (typ.subst x t) ts) (subst x t s) :=
   by cases s; unfold sch.open; rw [subst, typ.subst_open lc_t]
 
+-- Substitution distributes over open_vars
 theorem subst_open_vars (p : x ∉ xs) (lc_t : typ.lc t)
 : open_vars xs (subst x t s) = typ.subst x t (open_vars xs s) :=
   by cases s; unfold open_vars; rw [subst, typ.subst_open_vars p lc_t]

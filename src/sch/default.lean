@@ -1,2 +1,2 @@
 import sch.open
-import .props
+import .subst
