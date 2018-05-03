@@ -1,4 +1,4 @@
-import .binding_list
+import binding_list
 
 namespace tts ------------------------------------------------------------------
 
