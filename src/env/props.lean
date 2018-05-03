@@ -1,67 +1,17 @@
-import .core
+import .conv
 
 namespace tts ------------------------------------------------------------------
 namespace env ------------------------------------------------------------------
-
 variables {V : Type} -- Type of variable names
 variables {x x₁ x₂ : V} -- Variable names
 variables {s s₁ s₂ : sch V} -- Type schemes
 variables {fs : sch V → sch V} -- Type scheme function
 variables {b b₁ b₂ : binding V} -- Bindings
+variables {Γ Γ₁ Γ₂ Γ₃ : env V} -- Environments
 
 -- Use notation to avoid ambiguity.
 local notation `∅` := has_emptyc.emptyc (env V)
 local notation `singleton` := @singleton (binding V) (env V) _ _
-
-section conversions ------------------------------------------------------------
-variables {Γ Γ₁ Γ₂ Γ₃ : list (binding V)} -- Binding lists
-
-private
-theorem conv.binding : binding.map fs b = (b.var :~ fs (b.sch)) :=
-  by cases b; simp
-
-private
-theorem conv.empty : has_emptyc.emptyc (env V) = env.mk [] :=
-  rfl
-
-private
-theorem conv.insert : insert b (env.mk Γ) = env.mk (b :: Γ) :=
-  rfl
-
-private
-theorem conv.one : one b = env.mk (b :: []) :=
-  rfl
-
-private
-theorem conv.append : env.mk Γ₁ ++ env.mk Γ₂ = env.mk (Γ₁ ++ Γ₂) :=
-  rfl
-
-private
-theorem conv.mem : b ∈ env.mk Γ = (b ∈ Γ) :=
-  rfl
-
-private
-theorem conv.map : map fs (env.mk Γ) = env.mk (Γ.map (binding.map fs)) :=
-  rfl
-
-variables [decidable_eq V]
-
-private
-theorem conv.dom : dom (env.mk Γ) = binding_list.dom Γ :=
-  rfl
-
-private
-theorem conv.disjoint : disjoint (env.mk Γ₁) (env.mk Γ₂) = binding_list.disjoint Γ₁ Γ₂ :=
-  rfl
-
-private
-theorem conv.uniq : uniq (env.mk Γ) = binding_list.uniq Γ :=
-  rfl
-
-end /- section -/ conversions --------------------------------------------------
-
-section props ------------------------------------------------------------------
-variables {Γ Γ₁ Γ₂ Γ₃ : env V} -- Environments
 
 local attribute [simp] conv.binding conv.empty conv.insert conv.one conv.append
 local attribute [simp] conv.mem conv.map conv.dom conv.disjoint conv.uniq
@@ -311,8 +261,6 @@ theorem eq_sch_of_uniq_one_mid_of_mem_one_mid
   by cases Γ₁; cases Γ₂; exact binding_list.eq_sch_of_uniq_one_mid_of_mem_one_mid
 
 end /- section -/ uniq ---------------------------------------------------------
-
-end /- section -/ props --------------------------------------------------------
 
 end /- namespace -/ env --------------------------------------------------------
 end /- namespace -/ tts --------------------------------------------------------
