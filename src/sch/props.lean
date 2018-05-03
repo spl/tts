@@ -51,7 +51,7 @@ theorem subst_well_formed (lc_t : typ.lc t) (wf_s : well_formed s)
 -- types are locally-closed.
 theorem open_lc
 (wf_s : well_formed s)
-(len_s_ts : s.arity = ts.length)
+(ln_ts : s.arity = ts.length)
 (lc_ts : ∀ t ∈ ts, typ.lc t)
 : typ.lc (sch.open ts s) :=
   begin
@@ -62,7 +62,7 @@ theorem open_lc
     let ln := finset.fresh_list_length L ts.length,
     let dj := finset.fresh_list_disjoint_union.mp (finset.fresh_list_disjoint L ts.length),
     rw typ.subst_list_intro nd ln dj.1 lc_ts,
-    rw len_s_ts at wf,
+    rw ln_ts at wf,
     exact typ.subst_list_lc ln lc_ts (wf nd ln dj.2)
   end
 

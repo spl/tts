@@ -74,7 +74,7 @@ theorem subst_open_vars (p : x ∉ xs) (lc_t₂ : lc t₂)
 
 theorem subst_list_intro.rec
 (nd_xs : list.nodup xs)
-(len_xs_ts₁ : list.length xs = list.length ts₁)
+(ln_xs_ts₁ : list.length xs = list.length ts₁)
 (fr_xs : finset.disjoint_list xs (fv t ∪ fv_list ts₁ ∪ fv_list ts₂))
 (lc_ts₁ : ∀ t ∈ ts₁, lc t)
 (lc_ts₂ : ∀ t ∈ ts₂, lc t)
@@ -82,8 +82,8 @@ theorem subst_list_intro.rec
   begin
     induction xs generalizing ts₁ ts₂; simp; simp [and.assoc] at fr_xs,
     case list.nil {
-      rw list.length at len_xs_ts₁,
-      have ts₁_nil : ts₁ = [] := list.eq_nil_of_length_eq_zero len_xs_ts₁.symm,
+      rw list.length at ln_xs_ts₁,
+      have ts₁_nil : ts₁ = [] := list.eq_nil_of_length_eq_zero ln_xs_ts₁.symm,
       subst ts₁_nil,
       simp
     },
@@ -92,8 +92,8 @@ theorem subst_list_intro.rec
         ⟨ hd_nin_fv_t, tl_nin_fv_t, hd_nin_fv_list_t₁, tl_nin_fv_list_ts₁
         , hd_nin_fv_list_t₂, tl_nin_fv_list_ts₂
         ⟩,
-      cases ts₁; simp at len_xs_ts₁,
-      case list.nil { cases nat.eq_zero_of_add_eq_zero_right len_xs_ts₁ },
+      cases ts₁; simp at ln_xs_ts₁,
+      case list.nil { cases nat.eq_zero_of_add_eq_zero_right ln_xs_ts₁ },
       case list.cons : hd₁ tl₁ {
         cases list.forall_mem_cons.mp lc_ts₁ with lc_hd₁ lc_tl₁,
         have lc_ts₂' : ∀ t ∈ ts₂ ++ [hd₁], lc t :=
@@ -107,7 +107,7 @@ theorem subst_list_intro.rec
         simp,
         rw subst_open lc_hd₁,
         have : typ.open (ts₂ ++ [hd₁] ++ tl₁) t = subst_list tl tl₁ (typ.open (ts₂ ++ [hd₁] ++ list.map varf tl) t) :=
-          ih (list.nodup_of_nodup_cons nd_xs) len_xs_ts₁ fr_tl lc_tl₁ lc_ts₂',
+          ih (list.nodup_of_nodup_cons nd_xs) ln_xs_ts₁ fr_tl lc_tl₁ lc_ts₂',
         rw [list.append_cons_left, this, ←list.append_cons_left],
         rw subst_fresh hd_nin_fv_t,
         rw list.map_append (subst hd hd₁),
@@ -123,13 +123,13 @@ theorem subst_list_intro.rec
 -- names `xs` and then substituting `xs` for `ts`.
 theorem subst_list_intro
 (nd_xs : list.nodup xs)
-(len_xs_ts : list.length xs = list.length ts)
+(ln_xs_ts : list.length xs = list.length ts)
 (fr_xs : finset.disjoint_list xs (fv t ∪ fv_list ts))
 (lc_ts : ∀ t ∈ ts, lc t)
 : typ.open ts t = subst_list xs ts (typ.open_vars xs t) :=
   @subst_list_intro.rec _ xs t ts [] _
     nd_xs
-    len_xs_ts
+    ln_xs_ts
     (by simp at fr_xs; simp [fr_xs])
     lc_ts
     (by simp)
@@ -146,14 +146,14 @@ theorem subst_lc (l₂ : lc t₂) (l₁ : lc t₁) : lc (subst x t₂ t₁) :=
 -- A type substituted with a list of types is locally-closed if all type
 -- arguments are locally-closed.
 theorem subst_list_lc
-(len_xs_ts : list.length xs = list.length ts)
+(ln_xs_ts : list.length xs = list.length ts)
 (lc_ts : ∀ t ∈ ts, lc t)
 (lc_t : lc t)
 : lc (subst_list xs ts t) :=
   begin
     induction xs with _ _ ih generalizing ts t; cases ts; simp; try { assumption },
     cases list.forall_mem_cons.mp lc_ts with lc_ts_hd lc_ts_tl,
-    exact ih (list.length_tail_eq_length_tail len_xs_ts) lc_ts_tl
+    exact ih (list.length_tail_eq_length_tail ln_xs_ts) lc_ts_tl
       (subst_lc lc_ts_hd lc_t)
   end
 
