@@ -59,7 +59,7 @@ namespace typ ------------------------------------------------------------------
 
 -- Open a type with a list of free variables for bound variables.
 def open_vars (vs : list V) (t : typ V) : typ V :=
-  t.open (vs.map varf)
+  t.open (list.map varf vs)
 
 -- Property of a locally-closed type.
 inductive lc : typ V → Prop

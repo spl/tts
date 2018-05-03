@@ -78,7 +78,7 @@ theorem subst_list_intro.rec
 (fr_xs : finset.disjoint_list xs (fv t ∪ fv_list ts₁ ∪ fv_list ts₂))
 (lc_ts₁ : ∀ t ∈ ts₁, lc t)
 (lc_ts₂ : ∀ t ∈ ts₂, lc t)
-: t.open (ts₂ ++ ts₁) = subst_list xs ts₁ (t.open (ts₂ ++ xs.map varf)) :=
+: t.open (ts₂ ++ ts₁) = subst_list xs ts₁ (t.open (ts₂ ++ list.map varf xs)) :=
   begin
     induction xs generalizing ts₁ ts₂; simp; simp [and.assoc] at fr_xs,
     case list.nil {

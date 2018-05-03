@@ -1,1 +1,1 @@
-import .props
+import .subst
