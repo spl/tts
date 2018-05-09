@@ -2,7 +2,7 @@ import data.finset.disjoint_list
 
 namespace finset ---------------------------------------------------------------
 universes u
-variables {α : Type u} {β : Type u → Type u}
+variables {α : Type u}
 
 -- This type class specifies a function for producing “fresh” elements not
 -- found in a finite set. It is one way to say that the element type is infinite.
@@ -24,9 +24,11 @@ def fresh_not_mem : ∀ (s : finset α), fresh s ∉ s :=
 section decidable_eq -----------------------------------------------------------
 variables [decidable_eq α]
 
-def fresh_build (ε : β α) (ι : α → β α → β α) (ϕ : β α → finset α) (s : finset α) : ℕ → β α
+def fresh_build {β : Type u → Type u}
+(ε : β α) (ι : α → β α → β α) (ϕ : β α → finset α) (s : finset α)
+: ℕ → β α
   | 0     := ε
-  | (n+1) := let f' := fresh_build n in ι (fresh (ϕ f' ∪ s)) f'
+  | (n+1) := let f := fresh_build n in ι (fresh (ϕ f ∪ s)) f
 
 -- Given a finite set of elements and a cardinality, produce a finite set of
 -- fresh elements with the given cardinality.
