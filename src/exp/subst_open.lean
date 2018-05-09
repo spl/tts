@@ -4,12 +4,14 @@ import .subst
 
 namespace tts ------------------------------------------------------------------
 namespace exp ------------------------------------------------------------------
+variables {k i : ℕ} -- Natural numbers
 variables {V : Type} -- Type of variable names
-variables {e₁ e₂ : exp V} -- Expressions
+variables {x y : V} -- Variable names
+variables {e ex e₁ e₂ : exp V} -- Expressions
 
 variables [decidable_eq V] [finset.has_fresh V]
 
-lemma subst_open.rec {x : V} {k : ℕ} {ex e₁ e₂ : exp V} (lx : lc ex)
+lemma subst_open.rec (lx : lc ex)
 : subst x ex (open.rec e₂ k e₁) = open.rec (subst x ex e₂) k (subst x ex e₁) :=
   begin
     induction e₁ generalizing k; simp [subst, open.rec],
@@ -34,30 +36,30 @@ lemma subst_open.rec {x : V} {k : ℕ} {ex e₁ e₂ : exp V} (lx : lc ex)
     }
   end
 
-lemma subst_open {x : V} {ex e₁ e₂ : exp V}
+lemma subst_open
 : lc ex → subst x ex (exp.open e₂ e₁) = exp.open (subst x ex e₂) (subst x ex e₁) :=
   subst_open.rec
 
-lemma subst_open_var {x y : V} {ex e₁ : exp V} (p : x ≠ y) (lx : lc ex)
+lemma subst_open_var (p : x ≠ y) (lx : lc ex)
 : subst x ex (open_var y e₁) = open_var y (subst x ex e₁) :=
   by simp [open_var, subst_open lx, subst.varf.ne p]
 
 -- subst_intro
 
-lemma subst_intro.rec.varb {x : V} {k i : ℕ} {e : exp V}
+lemma subst_intro.rec.varb
 : open.rec e k (varb i) = subst x e (open.rec (varf x) k (varb i)) :=
   begin
-    repeat {rw open.rec},
+    repeat { rw open.rec },
     by_cases h : k = i,
-    {/- h : k = i -/ repeat {rw if_pos h}, rw subst.varf.eq},
-    {/- h : k ≠ i -/ repeat {rw if_neg h}, rw subst}
+    {/- h : k = i -/ repeat { rw if_pos h }, rw subst.varf.eq},
+    {/- h : k ≠ i -/ repeat { rw if_neg h }, rw subst}
   end
 
-lemma subst_intro.rec.varf {x y : V} {k : ℕ} {e : exp V} (p : x ≠ y)
+lemma subst_intro.rec.varf (p : x ≠ y)
 : open.rec e k (varf y) = subst x e (open.rec (varf x) k (varf y)) :=
-  by repeat {rw open.rec}; rw subst.varf.ne p
+  by repeat { rw open.rec }; rw subst.varf.ne p
 
-lemma subst_intro.rec {x : V} {e₂ : exp V}
+lemma subst_intro.rec
 : ∀ (k : ℕ) (e₁ : exp V), x ∉ fv e₁ → open.rec e₂ k e₁ = subst x e₂ (open.rec (varf x) k e₁)
   | k (varb i)     p := exp.subst_intro.rec.varb
   | k (varf y)     p := exp.subst_intro.rec.varf (fv.not_mem_varf.mp p)
@@ -76,12 +78,11 @@ lemma subst_intro.rec {x : V} {e₂ : exp V}
       simp [open.rec, subst, subst_intro.rec k ed p.1, subst_intro.rec (k + 1) eb p.2]
     end
 
-lemma subst_intro {x : V} {e₁ e₂ : exp V} (p : x ∉ fv e₁)
-: exp.open e₂ e₁ = subst x e₂ (open_var x e₁) :=
+lemma subst_intro (p : x ∉ fv e₁) : exp.open e₂ e₁ = subst x e₂ (open_var x e₁) :=
   subst_intro.rec 0 e₁ p
 
 -- Locally-closed expressions are stable over substitution
-lemma subst_lc {e ex : exp V} (x : V) (lx : lc ex) (l : lc e) : lc (subst x ex e) :=
+lemma subst_lc (x : V) (lx : lc ex) (l : lc e) : lc (subst x ex e) :=
   begin
     induction l generalizing ex lx x; simp [subst],
     case lc.varf : y {
@@ -118,9 +119,9 @@ theorem lc_open (h₁ : e₁.lc_body) (h₂ : e₂.lc) : (exp.open e₂ e₁).lc
   begin
     cases h₁ with L F,
     let L := fv e₁ ∪ L,
-    let p := finset.not_mem_union.mp (finset.fresh_not_mem L),
-    rw subst_intro p.1,
-    apply subst_lc (finset.fresh L) h₂ (F p.2)
+    let fr := finset.not_mem_union.mp (finset.fresh_not_mem L),
+    rw subst_intro fr.1,
+    exact subst_lc (finset.fresh L) h₂ (F fr.2)
   end
 
 end /- namespace -/ exp --------------------------------------------------------
