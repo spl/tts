@@ -4,7 +4,10 @@ import .subst
 
 namespace tts ------------------------------------------------------------------
 namespace exp ------------------------------------------------------------------
-variables {V : Type} [decidable_eq V] [finset.has_fresh V] -- Type of variable names
+variables {V : Type} -- Type of variable names
+variables {e₁ e₂ : exp V} -- Expressions
+
+variables [decidable_eq V] [finset.has_fresh V]
 
 lemma subst_open.rec {x : V} {k : ℕ} {ex e₁ e₂ : exp V} (lx : lc ex)
 : subst x ex (open.rec e₂ k e₁) = open.rec (subst x ex e₂) k (subst x ex e₁) :=
@@ -36,8 +39,8 @@ lemma subst_open {x : V} {ex e₁ e₂ : exp V}
   subst_open.rec
 
 lemma subst_open_var {x y : V} {ex e₁ : exp V} (p : x ≠ y) (lx : lc ex)
-: subst x ex (exp.open_var y e₁) = exp.open_var y (subst x ex e₁) :=
-  by simp [exp.open_var, subst_open lx, subst.varf.ne p]
+: subst x ex (open_var y e₁) = open_var y (subst x ex e₁) :=
+  by simp [open_var, subst_open lx, subst.varf.ne p]
 
 -- subst_intro
 
@@ -73,8 +76,8 @@ lemma subst_intro.rec {x : V} {e₂ : exp V}
       simp [open.rec, subst, subst_intro.rec k ed p.1, subst_intro.rec (k + 1) eb p.2]
     end
 
-lemma subst_intro (x : V) (e₁ e₂ : exp V) (p : x ∉ fv e₁)
-: exp.open e₂ e₁ = subst x e₂ (exp.open_var x e₁) :=
+lemma subst_intro {x : V} {e₁ e₂ : exp V} (p : x ∉ fv e₁)
+: exp.open e₂ e₁ = subst x e₂ (open_var x e₁) :=
   subst_intro.rec 0 e₁ p
 
 -- Locally-closed expressions are stable over substitution
@@ -93,7 +96,7 @@ lemma subst_lc {e ex : exp V} (x : V) (lx : lc ex) (l : lc e) : lc (subst x ex e
       existsi L ∪ {x},
       intros y py,
       rw finset.not_mem_union at py,
-      have rb : lc (subst x ex (exp.open_var y eb)) := rb py.1 lx x,
+      have rb : lc (subst x ex (open_var y eb)) := rb py.1 lx x,
       have x_ne_y : x ≠ y := ne.symm (finset.not_mem_singleton.mp py.2),
       rwa subst_open_var x_ne_y lx at rb
     },
@@ -104,11 +107,20 @@ lemma subst_lc {e ex : exp V} (x : V) (lx : lc ex) (l : lc e) : lc (subst x ex e
         existsi L ∪ {x},
         intros y py,
         rw finset.not_mem_union at py,
-        have rb : lc (subst x ex (exp.open_var y eb)) := rb py.1 lx x,
+        have rb : lc (subst x ex (open_var y eb)) := rb py.1 lx x,
         have x_ne_y : x ≠ y := ne.symm (finset.not_mem_singleton.mp py.2),
         rwa subst_open_var x_ne_y lx at rb
       },
     }
+  end
+
+theorem lc_open (h₁ : e₁.lc_body) (h₂ : e₂.lc) : (exp.open e₂ e₁).lc :=
+  begin
+    cases h₁ with L F,
+    let L := fv e₁ ∪ L,
+    let p := finset.not_mem_union.mp (finset.fresh_not_mem L),
+    rw subst_intro p.1,
+    apply subst_lc (finset.fresh L) h₂ (F p.2)
   end
 
 end /- namespace -/ exp --------------------------------------------------------

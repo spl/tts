@@ -17,13 +17,13 @@ theorem lc_app : lc (app ef ea) ↔ lc ef ∧ lc ea :=
   ⟩
 
 @[simp]
-theorem lc_lam : lc (lam eb) ↔ ∃ (L : finset V), ∀ {x : V}, x ∉ L → lc (eb.open_var x) :=
+theorem lc_lam : lc (lam eb) ↔ lc_body eb :=
   ⟨ λ l, by cases l with _ _ _ _ _ L _ F; exact ⟨L, @F⟩
   , λ ⟨_, F⟩, lc.lam @F
   ⟩
 
 @[simp]
-theorem lc_let_ : lc (let_ ed eb) ↔ lc ed ∧ ∃ (L : finset V), ∀ {x : V}, x ∉ L → lc (eb.open_var x) :=
+theorem lc_let_ : lc (let_ ed eb) ↔ lc ed ∧ lc_body eb :=
   ⟨ λ l, by cases l with _ _ _ _ _ _ _ _ L _ _ lc_ed lc_eb; exact ⟨lc_ed, L, @lc_eb⟩
   , λ ⟨lc_ed, _, lc_eb⟩, lc.let_ lc_ed @lc_eb
   ⟩

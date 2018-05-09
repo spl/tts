@@ -54,7 +54,6 @@ def exp.open (eb : exp V) : exp V → exp V :=
 namespace exp ------------------------------------------------------------------
 
 -- Open an expression with a free variable (x) for the last bound variable (0).
-protected
 def open_var (x : V) : exp V → exp V :=
   exp.open (varf x)
 
@@ -62,23 +61,24 @@ def open_var (x : V) : exp V → exp V :=
 inductive lc : exp V → Prop
   | varf : Π (x : V),                                                                          lc (varf x)
   | app  : Π                {ef ea : exp V}, lc ef → lc ea →                                   lc (app ef ea)
-  | lam  : Π {L : finset V} {eb : exp V},            (∀ {x : V}, x ∉ L → lc (eb.open_var x)) → lc (lam eb)
-  | let_ : Π {L : finset V} {ed eb : exp V}, lc ed → (∀ {x : V}, x ∉ L → lc (eb.open_var x)) → lc (let_ ed eb)
+  | lam  : Π {L : finset V} {eb : exp V},            (∀ {x : V}, x ∉ L → lc (open_var x eb)) → lc (lam eb)
+  | let_ : Π {L : finset V} {ed eb : exp V}, lc ed → (∀ {x : V}, x ∉ L → lc (open_var x eb)) → lc (let_ ed eb)
 
+-- Locally-closed body of a lambda- or let-expression
 def lc_body (eb : exp V) : Prop :=
-  ∃ (L : finset V), ∀ {x : V}, x ∉ L → (eb.open_var x).lc
+  ∃ (L : finset V), ∀ {x : V}, x ∉ L → (open_var x eb).lc
 
 -- Grammar of values
 inductive value : exp V → Prop
-  | lam  : Π {e : exp V}, (lam e).lc → value (lam e)
+  | lam  : Π {e : exp V}, e.lc_body → value (lam e)
 
 -- Reduction rules
 inductive red : exp V → exp V → Prop
-  | app₁  : Π {e₁ e₁' e₂ : exp V}, red e₁ e₁' →  e₂.lc →           red (app e₁ e₂)       (app e₁' e₂)
-  | app₂  : Π {e₁ e₂ e₂' : exp V}, e₁.value →    red e₂ e₂' →      red (app e₁ e₂)       (app e₁ e₂')
-  | lam   : Π {e₁ e₂ : exp V},     (lam e₁).lc → e₂.value →        red (app (lam e₁) e₂) (e₁.open e₂)
-  | let₁  : Π {e₁ e₁' e₂ : exp V}, red e₁ e₁' →  e₂.lc_body →      red (let_ e₁ e₂)      (let_ e₁' e₂)
-  | let₂  : Π {e₁ e₂ : exp V},     e₁.value →    (let_ e₁ e₂).lc → red (let_ e₁ e₂)      (e₂.open e₁)
+  | app₁  : Π {ef ef' ea : exp V}, red ef ef' → ea.lc      → red (app ef ea)       (app ef' ea)
+  | app₂  : Π {ef ea ea' : exp V}, ef.value   → red ea ea' → red (app ef ea)       (app ef ea')
+  | lam   : Π {eb ea : exp V},     eb.lc_body → ea.value   → red (app (lam eb) ea) (exp.open ea eb)
+  | let₁  : Π {ed ed' eb : exp V}, red ed ed' → eb.lc_body → red (let_ ed eb)      (let_ ed' eb)
+  | let₂  : Π {ed eb : exp V},     ed.value   → eb.lc_body → red (let_ ed eb)      (exp.open ed eb)
 
 end /- namespace -/ exp --------------------------------------------------------
 end /- namespace -/ tts --------------------------------------------------------

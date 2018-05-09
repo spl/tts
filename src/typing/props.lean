@@ -156,7 +156,7 @@ theorem uniq_env (T : typing Γ e t) : Γ.uniq :=
 -- Typing implies a locally-closed expression
 theorem lc_exp (T : typing Γ e t) : e.lc :=
   begin
-    induction T; simp,
+    induction T; simp [lc_body],
     case typing.app {
       tauto
     },
