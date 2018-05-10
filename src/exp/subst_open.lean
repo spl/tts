@@ -62,20 +62,20 @@ lemma subst_intro.rec.varf (p : x ≠ y)
 lemma subst_intro.rec
 : ∀ (k : ℕ) {e₁ : exp V}, x ∉ fv e₁ → open.rec e₂ k e₁ = subst x e₂ (open.rec (varf x) k e₁)
   | k (varb i)     p := exp.subst_intro.rec.varb
-  | k (varf y)     p := exp.subst_intro.rec.varf (fv.not_mem_varf.mp p)
+  | k (varf y)     p := exp.subst_intro.rec.varf (fv_not_mem_varf.mp p)
   | k (app ef ea)  p :=
     begin
-      rw fv.app at p,
+      rw fv_app at p,
       simp [open.rec, subst, subst_intro.rec k p.1, subst_intro.rec k p.2]
     end
   | k (lam eb)     p :=
     begin
-      rw fv.lam at p,
+      rw fv_lam at p,
       simp [open.rec, subst, subst_intro.rec (k + 1) p]
     end
   | k (let_ ed eb) p :=
     begin
-      rw fv.let_ at p,
+      rw fv_let_ at p,
       simp [open.rec, subst, subst_intro.rec k p.1, subst_intro.rec (k + 1) p.2]
     end
 

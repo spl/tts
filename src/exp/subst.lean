@@ -29,17 +29,17 @@ lemma subst_fresh {x : V} {e₁ e₂ : exp V} (p : x ∉ fv e₁)
     },
     case exp.app : ef ea rf ra {
       repeat {rw subst},
-      rw fv.app at p,
+      rw fv_app at p,
       rw [rf p.1, ra p.2]
     },
     case exp.lam : eb rb {
       rw subst,
-      rw fv.lam at p,
+      rw fv_lam at p,
       rw rb p
     },
     case exp.let_ : ed eb rd rb {
       repeat {rw subst},
-      have p : x ∉ fv ed ∧ x ∉ fv eb := fv.let_.mp p,
+      rw fv_let_ at p,
       rw [rd p.1, rb p.2]
     }
   end
