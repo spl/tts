@@ -21,28 +21,11 @@ lemma subst_varf_of_not_mem (p : x ∉ finset.singleton y) : subst x e (varf y) 
 
 lemma subst_fresh (p : x ∉ fv e₁) : subst x e₂ e₁ = e₁ :=
   begin
-    induction e₁ generalizing p,
-    case exp.varb {
-      rw subst
-    },
-    case exp.varf : y {
-      exact subst_varf_of_not_mem p
-    },
-    case exp.app : ef ea rf ra {
-      repeat {rw subst},
-      rw fv_app at p,
-      rw [rf p.1, ra p.2]
-    },
-    case exp.lam : eb rb {
-      rw subst,
-      rw fv_lam at p,
-      rw rb p
-    },
-    case exp.let_ : ed eb rd rb {
-      repeat {rw subst},
-      rw fv_let_ at p,
-      rw [rd p.1, rb p.2]
-    }
+    induction e₁ generalizing p; repeat { rw subst },
+    case exp.varf : y           { exact subst_varf_of_not_mem p        },
+    case exp.app  : ef ea rf ra { rw fv_app at p, rw [rf p.1, ra p.2]  },
+    case exp.lam  : eb rb       { rw fv_lam at p, rw rb p              },
+    case exp.let_ : ed eb rd rb { rw fv_let_ at p, rw [rd p.1, rb p.2] }
   end
 
 end /- namespace -/ exp --------------------------------------------------------
