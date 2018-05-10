@@ -83,12 +83,12 @@ theorem subst_weaken
       by_cases h : x = y; induction Γh,
       { /- h : x = y -/
         subst h,
-        rw subst.varf.eq,
+        rw subst_varf,
         cases eq_sch_of_uniq_one_mid_of_mem_one_mid un_Γ b,
         apply weaken (F ln_ts lc_ts) (uniq_remove_mid un_Γ)
       },
       { /- h : x ≠ y -/
-        rw subst.varf.ne h,
+        rw subst_varf_of_ne h,
         exact varf (uniq_remove_mid un_Γ)
                    (mem_remove_mid_of_ne_var (ne.symm h) b)
                    ln_ts

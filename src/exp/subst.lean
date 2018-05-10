@@ -2,30 +2,31 @@ import .fv
 
 namespace tts ------------------------------------------------------------------
 namespace exp ------------------------------------------------------------------
-variables {V : Type} [decidable_eq V] -- Type of variable names
+variables {V : Type} -- Type of variable names
+variables {x y : V} -- Variable names
+variables {e e₁ e₂ : exp V} -- Expressions
+
+variables [decidable_eq V]
 
 -- Properties of subst
 
-lemma subst.varf.eq {x : V} {e : exp V} : subst x e (varf x) = e :=
+lemma subst_varf : subst x e (varf x) = e :=
   by rw subst; rw if_pos (eq.refl x)
 
-lemma subst.varf.ne {x y : V} {e : exp V} (p : x ≠ y)
-: subst x e (varf y) = varf y :=
+lemma subst_varf_of_ne (p : x ≠ y) : subst x e (varf y) = varf y :=
   by rw subst; rw if_neg p
 
-lemma subst.varf.not_mem {x y : V} {e : exp V} (p : x ∉ finset.singleton y)
-: subst x e (varf y) = varf y :=
+lemma subst_varf_of_not_mem (p : x ∉ finset.singleton y) : subst x e (varf y) = varf y :=
   by rw subst; rw if_neg (finset.not_mem_singleton.mp p)
 
-lemma subst_fresh {x : V} {e₁ e₂ : exp V} (p : x ∉ fv e₁)
-: subst x e₂ e₁ = e₁ :=
+lemma subst_fresh (p : x ∉ fv e₁) : subst x e₂ e₁ = e₁ :=
   begin
     induction e₁ generalizing p,
     case exp.varb {
       rw subst
     },
     case exp.varf : y {
-      exact subst.varf.not_mem p
+      exact subst_varf_of_not_mem p
     },
     case exp.app : ef ea rf ra {
       repeat {rw subst},

@@ -42,7 +42,7 @@ lemma subst_open
 
 lemma subst_open_var (p : x ≠ y) (lx : lc ex)
 : subst x ex (open_var y e₁) = open_var y (subst x ex e₁) :=
-  by simp [open_var, subst_open lx, subst.varf.ne p]
+  by simp [open_var, subst_open lx, subst_varf_of_ne p]
 
 -- subst_intro
 
@@ -51,13 +51,13 @@ lemma subst_intro.rec.varb
   begin
     repeat { rw open.rec },
     by_cases h : k = i,
-    {/- h : k = i -/ repeat { rw if_pos h }, rw subst.varf.eq},
+    {/- h : k = i -/ repeat { rw if_pos h }, rw subst_varf},
     {/- h : k ≠ i -/ repeat { rw if_neg h }, rw subst}
   end
 
 lemma subst_intro.rec.varf (p : x ≠ y)
 : open.rec e k (varf y) = subst x e (open.rec (varf x) k (varf y)) :=
-  by repeat { rw open.rec }; rw subst.varf.ne p
+  by repeat { rw open.rec }; rw subst_varf_of_ne p
 
 lemma subst_intro.rec
 : ∀ (k : ℕ) {e₁ : exp V}, x ∉ fv e₁ → open.rec e₂ k e₁ = subst x e₂ (open.rec (varf x) k e₁)
