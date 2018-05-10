@@ -60,26 +60,27 @@ lemma subst_intro.rec.varf (p : x ≠ y)
   by repeat { rw open.rec }; rw subst.varf.ne p
 
 lemma subst_intro.rec
-: ∀ (k : ℕ) (e₁ : exp V), x ∉ fv e₁ → open.rec e₂ k e₁ = subst x e₂ (open.rec (varf x) k e₁)
+: ∀ (k : ℕ) {e₁ : exp V}, x ∉ fv e₁ → open.rec e₂ k e₁ = subst x e₂ (open.rec (varf x) k e₁)
   | k (varb i)     p := exp.subst_intro.rec.varb
   | k (varf y)     p := exp.subst_intro.rec.varf (fv.not_mem_varf.mp p)
   | k (app ef ea)  p :=
     begin
       rw fv.app at p,
-      simp [open.rec, subst, subst_intro.rec k ef p.1, subst_intro.rec k ea p.2]
+      simp [open.rec, subst, subst_intro.rec k p.1, subst_intro.rec k p.2]
     end
   | k (lam eb)     p :=
     begin
-      simp [open.rec, subst, subst_intro.rec (k + 1) eb p]
+      rw fv.lam at p,
+      simp [open.rec, subst, subst_intro.rec (k + 1) p]
     end
   | k (let_ ed eb) p :=
     begin
       rw fv.let_ at p,
-      simp [open.rec, subst, subst_intro.rec k ed p.1, subst_intro.rec (k + 1) eb p.2]
+      simp [open.rec, subst, subst_intro.rec k p.1, subst_intro.rec (k + 1) p.2]
     end
 
 lemma subst_intro (p : x ∉ fv e₁) : exp.open e₂ e₁ = subst x e₂ (open_var x e₁) :=
-  subst_intro.rec 0 e₁ p
+  subst_intro.rec 0 p
 
 -- Locally-closed expressions are stable over substitution
 lemma subst_lc (x : V) (lx : lc ex) (l : lc e) : lc (subst x ex e) :=
