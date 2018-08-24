@@ -9,13 +9,13 @@ variables {V : Type} [decidable_eq V] -- Type of variable names
 
 -- Free variables of a binding list
 def fv : list (binding V) → finset V
-  | []            := ∅
-  | (x :~ s :: Γ) := s.fv ∪ fv Γ
+  | []       := ∅
+  | (b :: Γ) := sch.fv b.sch ∪ fv Γ
 
 -- Domain of a binding list
 def dom : list (binding V) → finset V
-  | []            := ∅
-  | (x :~ _ :: Γ) := insert x (dom Γ)
+  | []       := ∅
+  | (b :: Γ) := insert b.var (dom Γ)
 
 -- When the domains of two binding lists are disjoint
 def disjoint (Γ₁ : list (binding V)) (Γ₂ : list (binding V)) : Prop :=
