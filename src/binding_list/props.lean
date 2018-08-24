@@ -7,7 +7,8 @@ namespace tts ------------------------------------------------------------------
 namespace binding_list ---------------------------------------------------------
 
 variables {V : Type} -- Type of variable names
-variables {x x₁ x₂ : V} -- Variables
+variables {x x₁ x₂ y : V} -- Variables
+variables {t : typ V} -- Types
 variables {s s₁ s₂ : sch V} -- Type schemes
 variables {fs : sch V → sch V} -- Type scheme function
 variables {b : binding V} -- Bindings
@@ -83,6 +84,32 @@ theorem map_cons : map fs (b :: Γ) = b.var :~ fs b.sch :: map fs Γ :=
 
 end /- section -/ mem_map ------------------------------------------------------
 
+section fv ---------------------------------------------------------------------
+variables [decidable_eq V]
+local attribute [simp] fv
+
+@[simp]
+theorem not_mem_fv_nil : x ∉ fv [] :=
+  by simp
+
+@[simp]
+theorem not_mem_fv_cons : x ∉ fv (b :: Γ) ↔ x ∉ sch.fv b.sch ∧ x ∉ fv Γ :=
+  by rw and.comm; simp
+
+theorem not_mem_sch_fv_of_not_mem_fv (p : x ∉ fv Γ) (h : b ∈ Γ) : x ∉ sch.fv b.sch :=
+  begin
+    induction Γ,
+    case list.nil { cases h },
+    case list.cons : hd tl ih {
+      simp at p h,
+      cases h,
+      case or.inl : h { subst h, exact p.2 },
+      case or.inr : h { exact ih p.1 h }
+    }
+  end
+
+end /- section -/ fv -----------------------------------------------------------
+
 -- Basic properties of dom
 section dom --------------------------------------------------------------------
 variables [decidable_eq V]
@@ -106,7 +133,7 @@ theorem dom_cons_val : (dom (x :~ s :: Γ)).val = multiset.ndinsert x ((dom Γ).
 
 @[simp]
 theorem dom_cons_insert : dom (b :: Γ) = insert b.var (dom Γ) :=
-  by cases b; simp
+  by simp
 
 @[simp]
 theorem dom_append : dom (Γ₁ ++ Γ₂) = dom Γ₁ ∪ dom Γ₂ :=
@@ -357,6 +384,33 @@ theorem eq_sch_of_uniq_one_mid_of_mem_one_mid
   end
 
 end /- section -/ mem ----------------------------------------------------------
+
+section sch_subst --------------------------------------------------------------
+variables [decidable_eq V]
+
+theorem sch_subst_mem (h : y :~ s ∈ Γ)
+: y :~ sch.subst x t s ∈ map (sch.subst x t) Γ :=
+  begin
+    induction Γ,
+    case list.nil { cases h },
+    case list.cons : hd tl ih {
+      simp at h,
+      cases h,
+      case or.inl : h {
+        cases hd,
+        simp at h ⊢,
+        cases h with h₁ h₂,
+        substs h₁ h₂,
+        exact or.inl ⟨rfl, rfl⟩
+      },
+      case or.inr : h {
+        simp only [map_cons, list.mem_cons_iff],
+        exact or.inr (ih h)
+      }
+    }
+  end
+
+end /- section -/ sch_subst ----------------------------------------------------
 
 end /- namespace -/ binding_list -----------------------------------------------
 end /- namespace -/ tts --------------------------------------------------------

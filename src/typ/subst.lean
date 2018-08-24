@@ -119,11 +119,11 @@ theorem subst_list_intro.rec
     }
   end
 
--- Opening up a term `t` with `ts` is the same as opening up `t` with fresh
+-- Opening up a type `t` with `ts` is the same as opening up `t` with fresh
 -- names `xs` and then substituting `xs` for `ts`.
 theorem subst_list_intro
-(nd_xs : list.nodup xs)
-(ln_xs_ts : list.length xs = list.length ts)
+(nd_xs : xs.nodup)
+(ln_xs_ts : xs.length = ts.length)
 (fr_xs : finset.disjoint_list xs (fv t ∪ fv_list ts))
 (lc_ts : ∀ t ∈ ts, lc t)
 : typ.open ts t = subst_list xs ts (typ.open_vars xs t) :=

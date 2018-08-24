@@ -3,12 +3,14 @@ import sch
 
 namespace tts ------------------------------------------------------------------
 namespace typing ---------------------------------------------------------------
-variables {V : Type} [decidable_eq V] -- Type of variable names
+variables {V : Type} -- Type of variable names
 variables {x : V} -- Variable names
 variables {e e₁ e₂ : exp V} -- Expressions
 variables {t : typ V} -- Types
 variables {s : sch V} -- Type schemes
 variables {Γ Γ₁ Γ₂ Γ₃ : env V} -- Environments
+
+variables [decidable_eq V]
 
 open exp
 open typ
@@ -127,7 +129,8 @@ theorem subst_weaken
     }
   end
 
-theorem subst
+-- Expression substitution preserves typing.
+theorem exp_subst_preservation
 : typing (one (x :~ s) ++ Γ) e₁ t
 → (∀ {ts : list (typ V)}, s.arity = ts.length → (∀ t ∈ ts, typ.lc t) → typing Γ e₂ (s.open ts))
 → e₂.lc

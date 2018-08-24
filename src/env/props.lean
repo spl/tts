@@ -3,7 +3,8 @@ import .conv
 namespace tts ------------------------------------------------------------------
 namespace env ------------------------------------------------------------------
 variables {V : Type} -- Type of variable names
-variables {x x₁ x₂ : V} -- Variable names
+variables {x x₁ x₂ y : V} -- Variable names
+variables {t : typ V} -- Types
 variables {s s₁ s₂ : sch V} -- Type schemes
 variables {fs : sch V → sch V} -- Type scheme function
 variables {b b₁ b₂ : binding V} -- Bindings
@@ -14,7 +15,7 @@ local notation `∅` := has_emptyc.emptyc (env V)
 local notation `singleton` := @singleton (binding V) (env V) _ _
 
 local attribute [simp] conv.binding conv.empty conv.insert conv.one conv.append
-local attribute [simp] conv.mem conv.map conv.dom conv.disjoint conv.uniq
+local attribute [simp] conv.mem conv.map conv.fv conv.dom conv.disjoint conv.uniq
 local attribute [simp] decidable.not_or_iff_and_not
 
 section append -----------------------------------------------------------------
@@ -85,6 +86,14 @@ theorem map_append : map fs (Γ₁ ++ Γ₂) = map fs Γ₁ ++ map fs Γ₂ :=
   by cases Γ₁; cases Γ₂; simp
 
 end /- section -/ map ----------------------------------------------------------
+
+section fv ---------------------------------------------------------------------
+variables [decidable_eq V]
+
+theorem not_mem_sch_fv_of_not_mem_fv : x ∉ fv Γ → b ∈ Γ → x ∉ sch.fv b.sch :=
+  by cases Γ; exact binding_list.not_mem_sch_fv_of_not_mem_fv
+
+end /- section -/ fv -----------------------------------------------------------
 
 section dom --------------------------------------------------------------------
 variables [decidable_eq V]
@@ -261,6 +270,23 @@ theorem eq_sch_of_uniq_one_mid_of_mem_one_mid
   by cases Γ₁; cases Γ₂; exact binding_list.eq_sch_of_uniq_one_mid_of_mem_one_mid
 
 end /- section -/ uniq ---------------------------------------------------------
+
+section sch_subst --------------------------------------------------------------
+variables [decidable_eq V]
+
+theorem sch_subst_mem_of_not_mem_sch_fv (h : x ∉ sch.fv s)
+: y :~ s ∈ Γ → y :~ sch.subst x t s ∈ Γ :=
+  by simp [sch.subst_fresh h]
+
+theorem sch_subst_mem_of_not_mem_fv (h₁ : x ∉ fv Γ) (h₂ : y :~ s ∈ Γ)
+: y :~ sch.subst x t s ∈ Γ :=
+  sch_subst_mem_of_not_mem_sch_fv (not_mem_sch_fv_of_not_mem_fv h₁ h₂) h₂
+
+theorem sch_subst_mem (h : y :~ s ∈ Γ)
+: y :~ sch.subst x t s ∈ map (sch.subst x t) Γ :=
+  by cases Γ; exact binding_list.sch_subst_mem h
+
+end /- section -/ sch_subst ----------------------------------------------------
 
 end /- namespace -/ env --------------------------------------------------------
 end /- namespace -/ tts --------------------------------------------------------

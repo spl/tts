@@ -39,6 +39,10 @@ theorem map : map fs (env.mk Γ) = env.mk (Γ.map (binding.map fs)) :=
 variables [decidable_eq V]
 
 protected
+theorem fv : fv (env.mk Γ) = binding_list.fv Γ :=
+  rfl
+
+protected
 theorem dom : dom (env.mk Γ) = binding_list.dom Γ :=
   rfl
 

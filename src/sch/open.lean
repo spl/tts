@@ -20,7 +20,7 @@ theorem open_lc
   begin
     unfold sch.open,
     cases wf_s with L wf,
-    let L := typ.fv (s.type) ∪ typ.fv_list ts ∪ L,
+    let L := sch.fv s ∪ typ.fv_list ts ∪ L,
     let nd := finset.fresh_list_nodup L ts.length,
     let ln := finset.fresh_list_length L ts.length,
     let dj := finset.fresh_list_disjoint_union.mp (finset.fresh_list_disjoint L ts.length),

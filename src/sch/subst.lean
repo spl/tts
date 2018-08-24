@@ -49,5 +49,16 @@ theorem subst_well_formed (lc_t : typ.lc t) (wf_s : well_formed s)
     exact typ.subst_lc lc_t (wf nd (by rwa subst_arity at ln) dj.1),
   end
 
+-- Opening up a scheme `s` with `ts` is the same as opening up `s` with fresh
+-- names `xs` and then substituting `xs` for `ts`.
+theorem subst_list_intro
+(nd_xs : xs.nodup)
+(ln_xs_ts : xs.length = ts.length)
+(fr_xs : finset.disjoint_list xs (fv s ∪ typ.fv_list ts))
+(lc_ts : ∀ t ∈ ts, typ.lc t)
+: sch.open ts s = typ.subst_list xs ts (open_vars xs s) :=
+  by unfold sch.open sch.open_vars;
+     exact typ.subst_list_intro nd_xs ln_xs_ts fr_xs lc_ts
+
 end /- namespace -/ sch --------------------------------------------------------
 end /- namespace -/ tts --------------------------------------------------------
