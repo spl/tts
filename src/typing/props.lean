@@ -5,8 +5,10 @@ namespace tts ------------------------------------------------------------------
 namespace typing ---------------------------------------------------------------
 variables {V : Type} -- Type of variable names
 variables {x : V} -- Variable names
+variables {xs : list V} -- Lists of variable names
 variables {e e₁ e₂ : exp V} -- Expressions
-variables {t : typ V} -- Types
+variables {t tx t₁ t₂ : typ V} -- Types
+variables {ts : list (typ V)} -- Lists of types
 variables {s : sch V} -- Type schemes
 variables {Γ Γ₁ Γ₂ Γ₃ : env V} -- Environments
 
@@ -141,6 +143,126 @@ theorem exp_subst_preservation
     rw ←@append_empty_left _ Γ,
     exact subst_weaken T @F lc_e₂
   end
+
+/-
+Lemma typing_typ_subst : forall F Z U E t T,
+  Z ∉ (env_fv E) ->
+  type U ->
+  E & F |= t ~: T ->
+  E & (map (sch_subst Z U) F) |= t ~: (typ_subst Z U T).
+Proof.
+  introv. intros WVs Dis Typ. gen_eq (E & F) as G. gen F.
+  induction Typ; introv EQ; subst; simpls typ_subst.
+  rewrite~ sch_subst_open. apply* typing_var.
+    binds_cases H0.
+      apply* binds_concat_fresh.
+       rewrite* sch_subst_fresh. use (fv_in_spec sch_fv B).
+      auto*.
+    rewrite~ sch_subst_arity. apply* typ_subst_type_list.
+  apply_fresh* typing_abs as y.
+   rewrite sch_subst_fold.
+   apply_ih_map_bind* H1.
+  apply_fresh* (@typing_let (sch_subst Z U M) (L1 ↑ {{Z}})) as y.
+   simpl. intros Ys Fr.
+   rewrite* <- sch_subst_open_vars.
+   apply_ih_map_bind* H2.
+  auto*.
+Qed.
+-/
+
+-- Type substitution preserves typing.
+theorem typ_subst_preservation
+: x ∉ fv Γ₁
+→ lc tx
+→ typing (Γ₁ ++ Γ₂) e t
+→ typing (Γ₁ ++ env.map (sch.subst x tx) Γ₂) e (typ.subst x tx t) :=
+  begin
+    generalize Γh : Γ₁ ++ Γ₂ = Γ₁₂,
+    intros px lc_tx T,
+    induction T generalizing Γ₁ Γ₂ x tx,
+    case typing.varf : Γ y s ts un_Γ b ln_ts lc_ts wf_s {
+      induction Γh,
+      rw sch.subst_open lc_tx,
+      apply typing.varf,
+      { simp at un_Γ, simp [un_Γ] },
+      { simp at b un_Γ ⊢,
+        cases b,
+        { exact or.inl (env.sch_subst_mem_of_not_mem_fv px b) },
+        { exact or.inr (env.sch_subst_mem b) } },
+      { simp [ln_ts] },
+      { exact typ.map_subst_lc lc_tx lc_ts },
+      { exact sch.subst_well_formed lc_tx wf_s },
+    },
+    case typing.app : Γ ef ea t₁ t₂ Tf Ta ihf iha {
+      exact app (ihf Γh px lc_tx) (iha Γh px lc_tx)
+    },
+    case typing.lam : L Γ eb t₁ t₂ lc_t₁ T₂ ihb {
+      simp only [typ.subst],
+      dsimp at ihb, -- TODO: remove when done
+/-
+E & map (sch_subst Z U) F |= trm_abs t1 ~: typ_arrow (typ_subst Z U U0) (typ_subst Z U T)
+
+⊢ typing (Γ₁ ++ map (sch.subst x tx) Γ₂) (exp.lam eb) (arr (subst x tx t₁) (subst x tx t₂))
+-/
+      refine lam (subst_lc lc_tx lc_t₁) (λ y (p : y ∉ L ∪ {x} ∪ fv t₁ ∪ fv t₂ ∪ fv Γ₁ ∪ fv Γ₂ ∪ dom (Γ₁ ++ Γ₂)), _),
+      rw sch.subst_fold,
+/-
+Fr : y ∉ L ∪ {{Z}} ∪ dom E ∪ dom F ∪ trm_fv t1 ∪ typ_fv U ∪ typ_fv U0 ∪ typ_fv T ∪ env_fv E ∪ env_fv F
+
+E & map (sch_subst Z U) F & y ~ sch_subst Z U (Sch 0 U0) |= t1 ^ y ~: typ_subst Z U T
+----
+⊢ typing (insert (y :~ sch.subst x tx ⟨0, t₁⟩) (Γ₁ ++ map (sch.subst x tx) Γ₂)) (open_var y eb) (subst x tx t₂)
+-/
+      rw ←append_insert,
+      induction Γh,
+      simp [decidable.not_or_iff_and_not] at p,
+      sorry,
+      -- apply ihb p.1,
+      -- { rw ←append_insert, },
+/-
+      simp [decidable.not_or_iff_and_not] at p,
+      -- induction Γh,
+      rw ←append_insert,
+      apply ihb p.1,
+      {  },
+      { rw ←append_insert, },
+      { },
+-/
+    },
+    case typing.let_ : Ld Lb Γ ed eb sd tb Fd Fb ihd ihb {
+      sorry
+    }
+  end
+
+/-
+(** Iterated type substitution preserves typing *)
+Lemma typing_typ_substs : forall Zs Us E t T,
+  fresh (env_fv E) (length Zs) Zs ->
+  types (length Zs) Us ->
+  E |= t ~: T ->
+  E |= t ~: (typ_substs Zs Us T).
+Proof.
+  induction Zs; destruct Us; simpl; introv Fr WU Tt;
+   destruct Fr; inversions WU;
+   simpls; try solve [ auto | contradictions* ].
+  inversions H2. inversions H1. clear H2 H1.
+  apply* IHZs. apply_empty* typing_typ_subst.
+Qed.
+-/
+
+/-
+theorem sch_open_of_open_vars
+(ln_ts : s.arity = ts.length)
+(lc_ts : ∀ t ∈ ts, typ.lc t)
+(h : typing Γ e₂ (sch.open_vars (finset.fresh_list (sch.fv s ∪ typ.fv_list ts) s.arity) s))
+: typing Γ e₂ (sch.open ts s) :=
+  begin
+    let nd := finset.fresh_list_nodup (sch.fv s ∪ typ.fv_list ts) ts.length,
+    let ln := finset.fresh_list_length (sch.fv s ∪ typ.fv_list ts) ts.length,
+    let dj := finset.fresh_list_disjoint (sch.fv s ∪ typ.fv_list ts) ts.length,
+    rw sch.subst_list_intro nd ln dj lc_ts,
+  end
+-/
 
 -- The following three theorems show the regularity of typing.
 

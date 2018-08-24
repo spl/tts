@@ -32,6 +32,11 @@ theorem append_empty_right : Γ ++ ∅ = Γ :=
 theorem append_insert : insert b Γ₁ ++ Γ₂ = insert b (Γ₁ ++ Γ₂) :=
   by cases Γ₁; cases Γ₂; simp
 
+/-
+theorem append_insert_right : Γ₁ ++ insert b Γ₂ = insert b (Γ₁ ++ Γ₂) :=
+  by cases Γ₁; cases Γ₂
+-/
+
 @[simp]
 theorem append_assoc : Γ₁ ++ Γ₂ ++ Γ₃ = Γ₁ ++ (Γ₂ ++ Γ₃) :=
   by cases Γ₁; cases Γ₂; cases Γ₃; simp

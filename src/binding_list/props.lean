@@ -166,6 +166,25 @@ theorem mem_dom_nil : x ∈ dom [] ↔ false :=
 theorem not_mem_dom_map : x ∉ dom (map fs Γ) ↔ x ∉ dom Γ :=
   by simp
 
+/-
+(** Case analysis on the belonging of a binding to a concatenation *)
+Lemma binds_concat_inv : forall x a E F,
+  binds x a (E & F) -> (x # F /\ binds x a E) \/ (binds x a F).
+Proof.
+  unfold binds. induction F as [|(y,b)]; simpl; intros Map.
+  left*.
+  case_var.
+    right*.
+    destruct (IHF Map) as [[Fr Map2] | Map2]. left*. right*.
+Qed.
+-/
+
+/-
+theorem mem_append : x :~ s ∈ (Γ₁ ++ Γ₂) → x ∉ dom Γ₂ ∧ x :~ s ∈ Γ₁ ∨ x :~ s ∈ Γ₂ :=
+  begin
+  end
+-/
+
 end /- section -/ dom ----------------------------------------------------------
 
 -- Basic properties of disjoint
