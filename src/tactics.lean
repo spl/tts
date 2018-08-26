@@ -1,4 +1,3 @@
-import meta.expr
 import tactic.basic
 
 meta def name.update_suffix : name → (string → string) → name

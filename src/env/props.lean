@@ -164,10 +164,10 @@ theorem disjoint_forall : disjoint Γ₁ Γ₂ ↔ ∀ {b : binding V}, b ∈ Γ
   by cases Γ₁; cases Γ₂; exact binding_list.disjoint_forall
 
 theorem disjoint.symm : disjoint Γ₁ Γ₂ → disjoint Γ₂ Γ₁ :=
-  by cases Γ₁; cases Γ₂; exact binding_list.disjoint.symm
+  by cases Γ₁; cases Γ₂; exact disjoint.symm
 
 theorem disjoint_comm (Γ₁ Γ₂ : env V) : disjoint Γ₁ Γ₂ ↔ disjoint Γ₂ Γ₁ :=
-  by cases Γ₁; cases Γ₂; exact binding_list.disjoint_comm
+  by cases Γ₁; cases Γ₂; exact disjoint.comm
 
 @[simp]
 theorem disjoint_nil : disjoint ∅ Γ ↔ true :=

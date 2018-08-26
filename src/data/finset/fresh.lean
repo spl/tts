@@ -92,7 +92,7 @@ theorem fresh_list_nodup (s : finset α) : ∀ n, (fresh_list s n).nodup
     list.nodup_cons_of_nodup ((not_iff_not_of_iff list.mem_to_finset).mp p) (fresh_list_nodup n)
 
 theorem fresh_list_disjoint (s : finset α) : ∀ n, disjoint_list (fresh_list s n) s
-  | 0     := rfl
+  | 0     := by simp
   | (n+1) :=
     let ⟨_, p⟩ := not_mem_union.mp (fresh_not_mem ((fresh_list s n).to_finset ∪ s)) in
     by rw [fresh_list_succ, disjoint_list_cons]; exact ⟨p, fresh_list_disjoint n⟩

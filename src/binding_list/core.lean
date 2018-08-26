@@ -19,7 +19,7 @@ def dom : list (binding V) → finset V
 
 -- When the domains of two binding lists are disjoint
 def disjoint (Γ₁ : list (binding V)) (Γ₂ : list (binding V)) : Prop :=
-  dom Γ₁ ∩ dom Γ₂ = ∅
+  disjoint (dom Γ₁) (dom Γ₂)
 
 -- If every variable is bound only once in the binding list
 inductive uniq : list (binding V) → Prop

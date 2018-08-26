@@ -172,25 +172,15 @@ end /- section -/ dom ----------------------------------------------------------
 section disjoint ---------------------------------------------------------------
 variables [decidable_eq V]
 
-theorem disjoint_multiset : disjoint Γ₁ Γ₂ ↔ multiset.disjoint (dom Γ₁).val (dom Γ₂).val :=
-  finset.inter_eq_empty_iff_disjoint
-
--- We reuse the multiset simplifier theorems in this section.
-local attribute [simp] disjoint_multiset
-
-theorem disjoint.symm : disjoint Γ₁ Γ₂ → disjoint Γ₂ Γ₁ :=
-  by simp
-
-theorem disjoint_comm : disjoint Γ₁ Γ₂ ↔ disjoint Γ₂ Γ₁ :=
-  by simp
+local attribute [simp] disjoint
 
 @[simp]
 theorem disjoint_nil : disjoint [] Γ ↔ true :=
-  iff_true_intro (by simp)
+  by simp
 
 @[simp]
 theorem disjoint_one : disjoint [x :~ s] Γ ↔ x ∉ dom Γ :=
-  by simp
+  finset.singleton_disjoint
 
 private
 lemma not_mem_dom_of_disjoint_cons : disjoint (b :: Γ₁) Γ₂ → b.var ∉ dom Γ₂ :=
@@ -208,7 +198,7 @@ theorem disjoint_cons_left : disjoint (b :: Γ₁) Γ₂ ↔ b.var ∉ dom Γ₂
 
 @[simp]
 theorem disjoint_cons_right : disjoint Γ₁ (b :: Γ₂) ↔ b.var ∉ dom Γ₁ ∧ disjoint Γ₁ Γ₂ :=
-  by simp [disjoint_comm]
+  by simp [disjoint.comm]
 
 @[simp]
 theorem disjoint_append_left : disjoint (Γ₁ ++ Γ₂) Γ₃ ↔ disjoint Γ₁ Γ₃ ∧ disjoint Γ₂ Γ₃ :=
@@ -216,7 +206,7 @@ theorem disjoint_append_left : disjoint (Γ₁ ++ Γ₂) Γ₃ ↔ disjoint Γ�
 
 @[simp]
 theorem disjoint_append_right : disjoint Γ₁ (Γ₂ ++ Γ₃) ↔ disjoint Γ₁ Γ₂ ∧ disjoint Γ₁ Γ₃ :=
-  by simp [disjoint_comm]
+  by simp [disjoint.comm]
 
 @[simp]
 theorem disjoint_map : disjoint (map fs Γ₁) Γ₂ ↔ disjoint Γ₁ Γ₂ :=

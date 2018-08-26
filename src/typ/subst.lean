@@ -54,7 +54,7 @@ theorem subst_list_fresh (p : finset.disjoint_list xs (fv t)) : subst_list xs ts
 theorem subst_open (lc_t₂ : lc t₂)
 : subst x t₂ (typ.open ts t₁) = typ.open (list.map (subst x t₂) ts) (subst x t₂ t₁) :=
   begin
-    induction t₁; simp,
+    induction t₁,
     case typ.varb {
       simp [list.nth_of_map]
     },
@@ -97,7 +97,7 @@ theorem subst_list_intro.rec
       case list.cons : hd₁ tl₁ {
         cases list.forall_mem_cons.mp lc_ts₁ with lc_hd₁ lc_tl₁,
         have lc_ts₂' : ∀ t ∈ ts₂ ++ [hd₁], lc t :=
-          list.forall_mem_append.mpr ⟨lc_ts₂, list.forall_mem_singleton lc_hd₁⟩,
+          list.forall_mem_append.mpr ⟨lc_ts₂, list.forall_mem_singleton.mpr lc_hd₁⟩,
         simp at tl_nin_fv_list_ts₁,
         cases tl_nin_fv_list_ts₁ with tl_nin_fv_hd₁ tl_nin_fv_list_tl₁,
         have : finset.disjoint_list tl (fv_list (ts₂ ++ [hd₁])), by
