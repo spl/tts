@@ -1,3 +1,5 @@
+/-
+
 import .core
 import sch
 
@@ -197,3 +199,5 @@ theorem lc_typ (T : typing Γ e t) : t.lc :=
 
 end /- namespace -/ typing -----------------------------------------------------
 end /- namespace -/ tts --------------------------------------------------------
+
+-/

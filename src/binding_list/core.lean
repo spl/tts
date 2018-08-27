@@ -1,3 +1,5 @@
+/-
+
 -- These are definitions on the underlying list of bindings.
 
 import .binding
@@ -28,3 +30,5 @@ inductive uniq : list (binding V) → Prop
 
 end /- namespace -/ binding_list -----------------------------------------------
 end /- namespace -/ tts --------------------------------------------------------
+
+-/

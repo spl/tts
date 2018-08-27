@@ -1,3 +1,5 @@
+/-
+
 import .lc
 import .subst_open
 import tactics
@@ -27,3 +29,5 @@ theorem lc_of_red_right (h : red e₁ e₂) : e₂.lc :=
 
 end /- namespace -/ exp --------------------------------------------------------
 end /- namespace -/ tts --------------------------------------------------------
+
+-/
