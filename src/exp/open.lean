@@ -1,5 +1,3 @@
-/-
-
 import .core
 import data.finset.fresh
 
@@ -56,5 +54,3 @@ lemma open_lc.rec {e₁ e₂ : exp V} {k : ℕ} (l : lc e₁) : open.rec e₂ k 
 
 end /- namespace -/ exp --------------------------------------------------------
 end /- namespace -/ tts --------------------------------------------------------
-
--/

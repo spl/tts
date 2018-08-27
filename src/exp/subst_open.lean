@@ -1,5 +1,3 @@
-/-
-
 import exp.open
 import .lc
 import .subst
@@ -129,5 +127,3 @@ theorem lc_open (h₁ : e₁.lc_body) (h₂ : e₂.lc) : (exp.open e₂ e₁).lc
 
 end /- namespace -/ exp --------------------------------------------------------
 end /- namespace -/ tts --------------------------------------------------------
-
--/
