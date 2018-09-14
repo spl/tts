@@ -45,10 +45,34 @@ lemma open_lc.rec {e₁ e₂ : exp V} {k : ℕ} (l : lc e₁) : open.rec e₂ k 
       rw [rf, ra]
     },
     case lc.lam : L eb Fb rb {
-      rw open_lc.core (nat.succ_ne_zero k) (rb (finset.fresh_not_mem L))
+      -- rw open_lc.core (nat.succ_ne_zero k) (rb (finset.fresh_not_mem L))
+      congr, dsimp at rb
     },
     case lc.let_ : L ed eb ld Fb rd rb {
       rw [rd, open_lc.core (nat.succ_ne_zero k) (rb (finset.fresh_not_mem L))]
+    }
+  end
+
+lemma open_lc'.rec {e₁ e₂ : exp V} {k : ℕ} (l : lc' e₁) : open.rec e₂ k e₁ = e₁ :=
+  begin
+    induction e₁ generalizing e₂ k,
+    case exp.varb : i {
+      cases l
+    },
+    case exp.varf : x {
+      simp [open.rec]
+    },
+    case exp.app : ef ea rf ra {
+      simp [lc'] at l,
+      cases l,
+      simp [open.rec, *]
+    },
+    case exp.lam : eb rb {
+      simp [lc'] at l,
+      cases l with L Fb,
+      simp [open.rec],
+    },
+    case exp.let_ : ed eb rd rb {
     }
   end
 

@@ -1,5 +1,13 @@
 import data.finset
 
+@[simp] theorem nat.lt_succ_max_left (m n : ℕ) : m < max m n + 1 :=
+by rw [nat.lt_succ_iff]; apply le_max_left
+
+@[simp] theorem nat.lt_succ_max_right (m n : ℕ) : n < max m n + 1 :=
+by rw [nat.lt_succ_iff]; apply le_max_right
+
+local attribute [-simp] add_comm
+
 namespace tts ------------------------------------------------------------------
 
 -- Grammar of expressions.
@@ -14,6 +22,33 @@ variables {V : Type} -- Type of variable names
 
 namespace exp ------------------------------------------------------------------
 
+@[simp]
+def depth : exp V → ℕ
+  | (varb _)     := 0
+  | (varf _)     := 0
+  | (app ef ea)  := max (depth ef) (depth ea) + 1
+  | (lam eb)     := depth eb + 1
+  | (let_ ed eb) := max (depth ed) (depth eb) + 1
+
+@[simp]
+theorem depth_app₁ {ef ea : exp V} : depth ef < depth (app ef ea) :=
+  by simp [depth]
+
+@[simp]
+theorem depth_app₂ {ef ea : exp V} : depth ea < depth (app ef ea) :=
+  by simp [depth]
+
+@[simp]
+theorem depth_let₁ {ed eb : exp V} : depth ed < depth (let_ ed eb) :=
+  by simp [depth]
+
+@[simp]
+theorem depth_let₂ {ed eb : exp V} : depth eb < depth (let_ ed eb) :=
+  by simp [depth]
+
+instance : has_sizeof (exp V) :=
+  ⟨depth⟩
+
 -- Open an expression (last parameter) with an expression (eb) for a bound
 -- variable.
 protected
@@ -23,6 +58,15 @@ def open.rec (e : exp V) : ℕ → exp V → exp V
   | k (app ef ea)  := app (open.rec k ef) (open.rec k ea)
   | k (lam eb)     := lam (open.rec (k + 1) eb)
   | k (let_ ed eb) := let_ (open.rec k ed) (open.rec (k + 1) eb)
+
+@[simp]
+theorem depth_open_rec_var {x k} {e : exp V}
+: depth (open.rec (varf x) k e) = depth e :=
+  begin
+    induction e with i generalizing k,
+    by_cases k = i,
+    all_goals { simp [open.rec, depth, *] }
+  end
 
 variables [decidable_eq V]
 
@@ -57,12 +101,27 @@ namespace exp ------------------------------------------------------------------
 def open_var (x : V) : exp V → exp V :=
   exp.open (varf x)
 
+@[simp]
+theorem depth_open_var_lam {x} {e : exp V}
+: depth (open_var x e) = depth e :=
+  by simp [open_var, exp.open, exp.open.rec]
+
 -- Property of a locally-closed expression
 inductive lc : exp V → Prop
   | varf : Π (x : V),                                                                          lc (varf x)
   | app  : Π                {ef ea : exp V}, lc ef → lc ea →                                   lc (app ef ea)
   | lam  : Π {L : finset V} {eb : exp V},            (∀ {x : V}, x ∉ L → lc (open_var x eb)) → lc (lam eb)
   | let_ : Π {L : finset V} {ed eb : exp V}, lc ed → (∀ {x : V}, x ∉ L → lc (open_var x eb)) → lc (let_ ed eb)
+
+def lc' : exp V → Prop
+  | (varb _)     := false
+  | (varf _)     := true
+  | (app ef ea)  := lc' ef ∧ lc' ea
+  | (lam eb)     := ∃ (L : finset V), ∀ {x}, x ∉ L → lc' (open_var x eb)
+  | (let_ ed eb) := lc' ed ∧ ∃ (L : finset V), ∀ {x}, x ∉ L → lc' (open_var x eb)
+  using_well_founded {
+    dec_tac := `[simp [measure, inv_image, nat.pos_iff_ne_zero']],
+    rel_tac := λ_ _, `[exact ⟨_, measure_wf depth⟩] }
 
 -- Locally-closed body of a lambda- or let-expression
 def lc_body (eb : exp V) : Prop :=
