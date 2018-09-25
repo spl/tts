@@ -121,8 +121,10 @@ begin
       have ih : open_typs (ts ++ [hdxs] ++ tlxs) t =
       subst_list tl tlxs (open_typs (ts ++ [hdxs] ++ map (var free) tl) t) :=
         ih _ d.2 ln_eq tlF ltlxs lts_hdxs,
-      rw [append_cons_left, ih, ←append_cons_left],
-      simp [subst_open_typs lhdxs, subst_fresh hdFt, subst_fresh_list hdFts, subst_fresh_var_free d.1] } }
+      have append_cons_mid : ∀ {α} {a : α} {l₁ l₂ : list α}, l₁ ++ a :: l₂ = l₁ ++ [a] ++ l₂,
+        by intros; simp,
+      rw [append_cons_mid, ih, ←append_cons_mid],
+      simp [ih, subst_open_typs lhdxs, subst_fresh hdFt, subst_fresh_list hdFts, subst_fresh_var_free d.1] } }
 end
 
 -- Opening up a type `t` with `ts` is the same as opening up `t` with fresh

@@ -9,9 +9,6 @@ theorem nth_of_map {f : α → α} (p : f a = a)
   | (hd::tl) 0     := by simp [option.get_or_else]
   | (hd::tl) (n+1) := by simp [option.get_or_else, nth_of_map]
 
-theorem append_cons_left : l₁ ++ a :: l₂ = l₁ ++ [a] ++ l₂ :=
-  by induction l₁; simp
-
 theorem length_tail_eq_length_tail
 {α β : Type} {a : α} {b : β} {la : list α} {lb : list β}
 : length (a :: la) = length (b :: lb) → length la = length lb :=
