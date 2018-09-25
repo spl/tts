@@ -1,60 +1,60 @@
-import .lc
+import .core
 
 namespace tts ------------------------------------------------------------------
 namespace exp ------------------------------------------------------------------
-variables {V : Type} -- Type of variable names
+variables {V : Type} [decidable_eq V] -- Type of variable names
+variables {k k₂ k₃ : ℕ} -- Natural numbers
+variables {v : V} -- Variable names
+variables {x : tagged V} -- Variables
+variables {e ea eb ed ef e₁ e₂ e₃ : exp V} -- Expressions
 
 open occurs
 
--- Properties of open
+/-- Open an expression (last parameter) with an expression (e) for a bound
+variable. -/
+def open_exp (e : exp V) : ℕ → exp V → exp V
+| k (var bound x)  := if k = x.tag then e else var bound x
+| _ (var free x)   := var free x
+| k (app ef ea)    := app (open_exp k ef) (open_exp k ea)
+| k (lam v eb)     := lam v (open_exp k.succ eb)
+| k (let_ v ed eb) := let_ v (open_exp k ed) (open_exp k.succ eb)
 
-lemma open_lc.core {e₁ e₂ e₃ : exp V} {k₂ k₃ : ℕ} (p : k₂ ≠ k₃)
-: open_exp e₂ k₂ (open_exp e₃ k₃ e₁) = open_exp e₃ k₃ e₁ → open_exp e₂ k₂ e₁ = e₁ :=
-  begin
-    induction e₁ generalizing e₂ e₃ k₂ k₃; repeat {rw open_exp},
-    case exp.var : o x {
-      cases o,
-      case occurs.bound {
-        cases x with _ i,
-        by_cases h : k₃ = i,
-        { induction h, simp [p] },
-        { simp [h] }
-      },
-      case occurs.free { exact id },
-    },
-    case exp.app : ef ea ihf iha {
-      intro h,
-      injection h with hf ha,
-      conv {to_lhs, rw [ihf p hf, iha p ha]}
-    },
-    case exp.lam : v eb rb {
-      intro h,
-      injection h with _ hb,
-      conv {to_lhs, rw rb (mt nat.succ.inj p) hb}
-    },
-    case exp.let_ : v ed eb rd rb {
-      intro h,
-      injection h with _ hd hb,
-      conv {to_lhs, rw [rd p hd, rb (mt nat.succ.inj p) hb]}
-    }
-  end
+@[simp] theorem open_exp_var_bound_eq (h : k = x.tag) :
+  open_exp e k (var bound x) = e :=
+by simp [open_exp, h]
 
-variables [decidable_eq V]
+@[simp] theorem open_exp_var_bound_ne (h : k ≠ x.tag) :
+  open_exp e k (var bound x) = var bound x :=
+by simp [open_exp, h]
 
-@[simp]
-lemma open_exp_of_lc {e₁ e₂ : exp V} {k : ℕ} (l : lc e₁) : open_exp e₂ k e₁ = e₁ :=
-  begin
-    induction l generalizing e₂ k; rw open_exp,
-    case lc.app : ef ea lf la rf ra {
-      rw [rf, ra]
-    },
-    case lc.lam : v L eb lb rb {
-      rw open_lc.core k.succ_ne_zero (rb ((fresh.tagged v).gen_not_mem L))
-    },
-    case lc.let_ : v L ed eb ld Fb rd rb {
-      rw [rd, open_lc.core k.succ_ne_zero (rb ((fresh.tagged v).gen_not_mem L))]
-    }
-  end
+@[simp] theorem open_exp_var_free :
+  open_exp e k (var free x) = var free x :=
+rfl
+
+@[simp] theorem open_exp_app :
+  open_exp e k (app ef ea) = app (open_exp e k ef) (open_exp e k ea) :=
+rfl
+
+@[simp] theorem open_exp_lam :
+  open_exp e k (lam v eb) = lam v (open_exp e k.succ eb) :=
+rfl
+
+@[simp] theorem open_exp_let_ :
+  open_exp e k (let_ v ed eb) = let_ v (open_exp e k ed) (open_exp e k.succ eb) :=
+rfl
+
+/-- Open an expression with an expression `e` for the last bound variable (0) -/
+def open_exp₀ (e : exp V) : exp V → exp V :=
+open_exp e 0
+
+/-- Open an expression with a free variable `x` for the last bound variable -/
+def open_var (x : tagged V) : exp V → exp V :=
+open_exp₀ (var free x)
+
+/-- Open an expression with a variable of the name `v` fresh from the variable
+set `L` for the last bound variable. -/
+def open_fresh (v : V) (L : finset (tagged V)) : exp V → exp V :=
+open_var $ (fresh.tagged v).gen L
 
 end /- namespace -/ exp --------------------------------------------------------
 end /- namespace -/ tts --------------------------------------------------------
