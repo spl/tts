@@ -3,30 +3,42 @@ import .fv
 namespace tts ------------------------------------------------------------------
 namespace exp ------------------------------------------------------------------
 variables {V : Type} -- Type of variable names
-variables {x y : V} -- Variable names
-variables {e e₁ e₂ : exp V} -- Expressions
+variables {x y : tagged V} -- Variable names
+variables {e ex : exp V} -- Expressions
 
 variables [decidable_eq V]
 
+open occurs
+
 -- Properties of subst
 
-lemma subst_varf : subst x e (varf x) = e :=
-  by rw subst; rw if_pos (eq.refl x)
+@[simp]
+theorem subst_var_bound : subst x e (var bound y) = var bound y :=
+  rfl
 
-lemma subst_varf_of_ne (p : x ≠ y) : subst x e (varf y) = varf y :=
-  by rw subst; rw if_neg p
+@[simp]
+lemma subst_var_free_eq (h : x = y) : subst x e (var free y) = e :=
+  by simp [subst, h]
 
-lemma subst_varf_of_not_mem (p : x ∉ finset.singleton y) : subst x e (varf y) = varf y :=
-  by rw subst; rw if_neg (finset.not_mem_singleton.mp p)
+@[simp]
+lemma subst_var_free_ne (h : x ≠ y) : subst x e (var free y) = var free y :=
+  by simp [subst, h]
 
-lemma subst_fresh (p : x ∉ fv e₁) : subst x e₂ e₁ = e₁ :=
-  begin
-    induction e₁ generalizing p; repeat { rw subst },
-    case exp.varf : y           { exact subst_varf_of_not_mem p        },
-    case exp.app  : ef ea rf ra { rw fv_app at p, rw [rf p.1, ra p.2]  },
-    case exp.lam  : eb rb       { rw fv_lam at p, rw rb p              },
-    case exp.let_ : ed eb rd rb { rw fv_let_ at p, rw [rd p.1, rb p.2] }
-  end
+@[simp]
+lemma subst_app {ef ea : exp V} : subst x e (app ef ea) = app (subst x e ef) (subst x e ea) :=
+  rfl
+
+@[simp]
+lemma subst_lam {v} {eb : exp V} : subst x e (lam v eb) = lam v (subst x e eb) :=
+  rfl
+
+@[simp]
+lemma subst_let_ {v} {ed eb : exp V} : subst x e (let_ v ed eb) = let_ v (subst x e ed) (subst x e eb) :=
+  rfl
+
+@[simp]
+lemma subst_fresh (h : x ∉ fv e) : subst x ex e = e :=
+  by induction e with o; try {cases o}; try {simp at h}; try {cases h}; simp *
 
 end /- namespace -/ exp --------------------------------------------------------
 end /- namespace -/ tts --------------------------------------------------------

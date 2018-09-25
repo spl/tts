@@ -4,4 +4,5 @@ version = "0.0.1"
 path = "src"
 
 [dependencies]
-mathlib = {git = "https://github.com/leanprover/mathlib.git", rev = "58cfe9f84feae93ed9b894754e60e2a3d049a251"}
+mathlib = {git = "https://github.com/leanprover/mathlib.git", rev = "6434658c6f59377afbee48dfa7158dbd4d91d46e"}
+finmap = {git = "https://github.com/spl/lean-finmap.git", rev = "936d9caeb27631e3c6cf20e972de4837c9fe98fa"}

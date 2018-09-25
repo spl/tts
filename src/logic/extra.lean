@@ -1,5 +1,11 @@
 variables {p : Prop} [decidable p] {α β : Type} {a b : α}
 
+/-
+@[simp]
+theorem if_branches_eq (a : α) : ite p a a = a :=
+  by by_cases h : p; simp [h]
+-/
+
 theorem if_distrib (f : α → β) : f (ite p a b) = ite p (f a) (f b) :=
   by by_cases h : p; simp [h]
 

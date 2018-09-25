@@ -3,12 +3,15 @@ import .core
 namespace tts ------------------------------------------------------------------
 namespace typ ------------------------------------------------------------------
 variables {V : Type} -- Type of variable names
-variables {x : V} -- Variable names
 variables {t₁ t₂ : typ V} -- Types
 
+variables [_root_.decidable_eq V]
+
+open occurs
+
 @[simp]
-theorem lc_varf (x : V) : lc (varf x) :=
-  lc.varf x
+theorem lc_var_free (x : tagged V) : lc (var free x) :=
+  lc.var x
 
 @[simp]
 theorem lc_arr : lc (arr t₁ t₂) ↔ lc t₁ ∧ lc t₂ :=
