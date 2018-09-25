@@ -72,6 +72,12 @@ begin
   case list.cons : _ _ ih { simp at F, cases txs; [simp, {simp [F.1, ih F.2]}] }
 end
 
+private theorem nth_of_map {α} {a} {f : α → α} (p : f a = a) :
+  ∀ {l n}, option.get_or_else ((nth l n).map f) a = f (option.get_or_else (nth l n) a)
+| []       n     := by simp [option.get_or_else, p]
+| (hd::tl) 0     := by simp [option.get_or_else]
+| (hd::tl) (n+1) := by simp [option.get_or_else, nth_of_map]
+
 -- Substitution distributes over open
 theorem subst_open_typs (lx : lc tx) :
   subst x tx (open_typs ts t) = open_typs (map (subst x tx) ts) (subst x tx t) :=
