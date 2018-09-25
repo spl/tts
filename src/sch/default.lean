@@ -1,2 +1,1 @@
-import sch.open
-import .subst
+import sch.open .subst

@@ -180,7 +180,7 @@ theorem lc_typ (T : typing Γ e t) : t.lc :=
   begin
     induction T,
     case typing.var : _ x _ _ _ ln_eq lts ls {
-      exact open_lc x.val ls ln_eq lts
+      exact lc_open_typs x.val ls ln_eq lts
     },
     case typing.app : Γ ef ea t₁ t₂ Tf Ta ihf iha {
       simp at ihf, cases ihf with _ lt₂, exact lt₂
