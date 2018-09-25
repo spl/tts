@@ -1,70 +1,78 @@
 import data.finset
+import data.fresh
 import data.list.extra
+import occurs
 
 namespace tts ------------------------------------------------------------------
 
 -- Grammar of types.
 @[derive decidable_eq]
 inductive typ (V : Type) : Type
-  | varb {} : ℕ → typ          -- bound variable
-  | varf    : V → typ          -- free variable
-  | arr     : typ → typ → typ  -- function arrow
+  | var : occurs → tagged V → typ -- variable, bound or free
+  | arr : typ → typ → typ         -- function arrow
 
 variables {V : Type} -- Type of variable names
 
 namespace typ ------------------------------------------------------------------
 variables [_root_.decidable_eq V]
 
+open occurs
+
+protected
+def repr [has_repr V] : typ V → string
+  | (var bound x)  := _root_.repr x.tag ++ "⟨" ++ _root_.repr x.val ++ "⟩"
+  | (var free x)   := _root_.repr x
+  | (arr t₁ t₂)    := "(" ++ t₁.repr ++ ") → (" ++ t₂.repr ++ ")"
+
+instance [has_repr V] : has_repr (typ V) :=
+⟨typ.repr⟩
+
 -- Free variables of a type
-@[simp]
-def fv : typ V → finset V
-  | (varb i)    := ∅
-  | (varf x)    := {x}
-  | (arr t₁ t₂) := fv t₁ ∪ fv t₂
+def fv : typ V → finset (tagged V)
+  | (var bound _) := ∅
+  | (var free x)  := {x}
+  | (arr t₁ t₂)   := fv t₁ ∪ fv t₂
 
 -- Free variables of a list of types
-@[simp]
-def fv_list : list (typ V) → finset V
+def fv_list : list (typ V) → finset (tagged V)
   | []        := ∅
   | (t :: ts) := fv t ∪ fv_list ts
 
 -- Substitute a free variable for a type in a type
-@[simp]
-def subst (y : V) (t : typ V) : typ V → typ V
-  | (varb i)    := varb i
-  | (varf x)    := if x = y then t else varf x
-  | (arr t₁ t₂) := arr (subst t₁) (subst t₂)
+def subst (x : tagged V) (t : typ V) : typ V → typ V
+  | (var bound y)  := var bound y
+  | (var free y)   := if x = y then t else var free y
+  | (arr t₁ t₂)    := arr (subst t₁) (subst t₂)
 
 -- Substitute a list of free variables for a list of types in a type
-@[simp]
-def subst_list : list V → list (typ V) → typ V → typ V
+def subst_list : list (tagged V) → list (typ V) → typ V → typ V
   | (x :: xs) (t₂ :: ts₂) t₁ := subst_list xs ts₂ (subst x t₂ t₁)
   | _         _           t₁ := t₁
 
-end /- namespace -/ typ --------------------------------------------------------
-
-open typ
-
--- Open a type with a list of expressions for bound variables.
--- Note: This definition is defined with an explicit namespace to avoid conflict
--- with the keyword `open`.
+-- Open a type with a list of types for bound variables.
 @[simp]
-protected
-def typ.open (ts : list (typ V)) : typ V → typ V
-  | (varb i)    := (ts.nth i).get_or_else (varb 0)
-  | (varf x)    := varf x
-  | (arr t₁ t₂) := arr t₁.open t₂.open
-
-namespace typ ------------------------------------------------------------------
+def open_typs (ts : list (typ V)) : typ V → typ V
+  | (var bound x) := (ts.nth x.tag).get_or_else (var bound x)
+  | (var free x)  := var free x
+  | (arr t₁ t₂)   := arr (open_typs t₁) (open_typs t₂)
 
 -- Open a type with a list of free variables for bound variables.
-def open_vars (vs : list V) (t : typ V) : typ V :=
-  t.open (list.map varf vs)
+def open_vars (xs : list (tagged V)) (t : typ V) : typ V :=
+  open_typs (list.map (var free) xs) t
 
 -- Property of a locally-closed type.
 inductive lc : typ V → Prop
-  | varf : Π (x : V),                         lc (varf x)
-  | arr  : Π {t₁ t₂ : typ V}, lc t₁ → lc t₂ → lc (arr t₁ t₂)
+  | var : Π (x : tagged V),                  lc (var free x)
+  | arr : Π {t₁ t₂ : typ V}, lc t₁ → lc t₂ → lc (arr t₁ t₂)
+
+-- Locally-closed body of a type scheme with a given arity
+def lc_body (n : ℕ) (t : typ V) : Prop :=
+  ∃ (L : finset (tagged V)),
+  ∀ {xs : list (tagged V)},
+  xs.nodup →
+  xs.length = n →
+  (∀ {x : tagged V}, x ∈ xs → x ∉ L) →
+  lc (open_vars xs t)
 
 end /- namespace -/ typ --------------------------------------------------------
 end /- namespace -/ tts --------------------------------------------------------

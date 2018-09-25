@@ -1,35 +1,29 @@
-/-
-
 import env
 import exp
 
 namespace tts ------------------------------------------------------------------
 variables {V : Type} [decidable_eq V] -- Type of variable names
 
-open exp
-open typ
+open occurs exp typ sch
 
 inductive typing : env V → exp V → typ V → Prop
-  | varf : Π {Γ : env V} {x : V} {s : sch V} {ts : list (typ V)}
-    , Γ.uniq
-    → x :~ s ∈ Γ
+  | var : Π {Γ : env V} {x : tagged V} {s : sch V} {ts : list (typ V)}
+    , x :~ s ∈ Γ
     → s.arity = ts.length
-    → (∀ t ∈ ts, typ.lc t)
-    → s.well_formed
-    → typing Γ (varf x) (s.open ts)
+    → (∀ (t : typ V), t ∈ ts → lc t)
+    → lc s
+    → typing Γ (var free x) (open_typs ts s)
   | app : Π {Γ : env V} {ef ea : exp V} {t₁ t₂ : typ V}
     , typing Γ ef (arr t₁ t₂)
     → typing Γ ea t₁
     → typing Γ (app ef ea) t₂
-  | lam : Π {L : finset V} {Γ : env V} {eb : exp V} {t₁ t₂ : typ V}
-    , t₁.lc
-    → (∀ {x : V}, x ∉ L → typing (insert ⟨x, ⟨0, t₁⟩⟩ Γ) (eb.open_var x) t₂)
-    → typing Γ (lam eb) (arr t₁ t₂)
-  | let_ : Π {Ld Lb : finset V} {Γ : env V} {ed eb : exp V} {sd : sch V} {tb : typ V}
-    , (∀ {xs : list V}, xs.length = sd.arity → xs.nodup → finset.disjoint_list xs Ld → typing Γ ed (sd.open_vars xs))
-    → (∀ {x : V}, x ∉ Lb → typing (insert ⟨x, sd⟩ Γ) (eb.open_var x) tb)
-    → typing Γ (let_ ed eb) tb
+  | lam : Π {v} {Γ : env V} {eb : exp V} {t₁ t₂ : typ V} (L : finset (tagged V))
+    , lc t₁
+    → (∀ {x : tagged V}, x ∉ L → typing (insert ⟨x, ⟨0, t₁⟩⟩ Γ) (open_var x eb) t₂)
+    → typing Γ (lam v eb) (arr t₁ t₂)
+  | let_ : Π {v} {Γ : env V} {ed eb : exp V} (sd : sch V) {tb : typ V} (Ld Lb : finset (tagged V))
+    , (∀ {xs : list (tagged V)}, xs.length = sd.arity → xs.nodup → (∀ x ∈ xs, x ∉ Ld) → typing Γ ed (open_vars xs sd))
+    → (∀ {x : tagged V}, x ∉ Lb → typing (insert ⟨x, sd⟩ Γ) (open_var x eb) tb)
+    → typing Γ (let_ v ed eb) tb
 
 end /- namespace -/ tts --------------------------------------------------------
-
--/
