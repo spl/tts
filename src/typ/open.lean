@@ -2,17 +2,19 @@ import .core
 
 namespace tts ------------------------------------------------------------------
 namespace typ ------------------------------------------------------------------
-variables {i : ℕ} -- Natural numbers
-variables {V : Type} -- Type of variable names
-variables [_root_.decidable_eq V]
-variables {t : typ V} -- Types
-variables {ts : list (typ V)} -- Lists of types
+variables {V : Type} [_root_.decidable_eq V] -- Type of variable names
 
+open occurs
 
--- Opening a locally-closed type is the identity
-@[simp]
-theorem open_lc (h : lc t) : open_typs ts t = t :=
-  by induction t; cases h; simp [open_typs, *]
+/-- Open a type with a list of types for bound variables -/
+@[simp] def open_typs (ts : list (typ V)) : typ V → typ V
+| (var bound x) := (ts.nth x.tag).get_or_else (var bound x)
+| (var free x)  := var free x
+| (arr t₁ t₂)   := arr (open_typs t₁) (open_typs t₂)
+
+/-- Open a type with a list of free variables for bound variables -/
+def open_vars (xs : list (tagged V)) (t : typ V) : typ V :=
+open_typs (list.map (var free) xs) t
 
 end /- namespace -/ typ --------------------------------------------------------
 end /- namespace -/ tts --------------------------------------------------------

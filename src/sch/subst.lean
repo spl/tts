@@ -23,9 +23,9 @@ theorem subst_fold : mk n (typ.subst x t₂ t₁) = subst x t₂ (mk n t₁) :=
   rfl
 
 -- Substitution distributes over open
-theorem subst_open (l : typ.lc t)
+theorem subst_open_typs (l : typ.lc t)
 : typ.subst x t (open_typs ts s) = open_typs (list.map (typ.subst x t) ts) (subst x t s) :=
-  by cases s; simp [typ.subst_open l]
+  by cases s; simp [typ.subst_open_typs l]
 
 -- Substitution distributes over open_vars
 theorem subst_open_vars (h : x ∉ xs) (l : typ.lc t)

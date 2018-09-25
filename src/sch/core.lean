@@ -1,5 +1,4 @@
-import data.fresh
-import typ.core
+import typ
 
 namespace tts ------------------------------------------------------------------
 
