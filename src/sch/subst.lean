@@ -3,7 +3,8 @@ import .core
 namespace tts ------------------------------------------------------------------
 namespace sch ------------------------------------------------------------------
 variables {V : Type} [_root_.decidable_eq V] -- Type of variable names
-variables {a : ℕ} -- Type scheme arity
+variables {vs : list V} -- List of variable names
+variables {nd : vs.nodup} -- No duplicate variables names
 variables {x x₁ x₂ : tagged V} -- Variables
 variables {xs : list (tagged V)} -- List of variable names
 variables {t tx t₁ t₂ : typ V} -- Types
@@ -14,17 +15,17 @@ open list
 
 /-- Substitute a free variable for a type in a scheme -/
 def subst (x : tagged V) (t : typ V) (s : sch V) : sch V :=
-⟨s.arity, typ.subst x t s.type⟩
+⟨s.vars, typ.subst x t s.type, s.vars_nodup⟩
 
-@[simp] theorem subst_mk : subst x tx (mk a t) = mk a (typ.subst x tx t) :=
+@[simp] theorem subst_mk : subst x tx (mk vs t nd) = mk vs (typ.subst x tx t) nd :=
 rfl
 
 /-- Substitute a list of free variables for a list of types in a scheme -/
 def subst_list (xs : list (tagged V)) (ts : list (typ V)) (s : sch V) : sch V :=
-⟨s.arity, typ.subst_list xs ts s.type⟩
+⟨s.vars, typ.subst_list xs ts s.type, s.vars_nodup⟩
 
 @[simp] theorem subst_list_mk :
-  subst_list xs txs (mk a t) = mk a (typ.subst_list xs txs t) :=
+  subst_list xs txs (mk vs t nd) = mk vs (typ.subst_list xs txs t) nd :=
 rfl
 
 -- Substitution with a fresh name is the identity
@@ -32,7 +33,7 @@ rfl
 eq_of_veq rfl $ typ.subst_fresh h
 
 -- Fold typ.subst into sch.subst
-theorem subst_fold : mk a (typ.subst x t₂ t₁) = subst x t₂ (mk a t₁) :=
+theorem subst_fold : mk vs (typ.subst x t₂ t₁) nd = subst x t₂ (mk vs t₁ nd) :=
 rfl
 
 -- Substitution distributes over open
@@ -46,7 +47,7 @@ theorem subst_open_vars (h : x ∉ xs) (l : typ.lc t) :
 by cases s; simp [typ.subst_open_vars h l]
 
 @[simp] theorem subst_arity : (subst x t s).arity = s.arity :=
-by unfold subst
+by unfold subst arity
 
 @[simp] theorem subst_type : (subst x t s).type = typ.subst x t s.type :=
 by unfold subst
@@ -72,7 +73,7 @@ theorem subst_list_intro
   (F : ∀ x ∈ xs, x ∉ fv s ∪ typ.fv_list ts)
   (l : ∀ t ∈ ts, typ.lc t) :
   open_typs ts s = typ.subst_list xs ts (open_vars xs s) :=
-by unfold open_typs open_vars; exact typ.subst_list_intro d ln_eq F l
+by rw [open_typs, open_vars, typ.subst_list_intro d ln_eq F l]
 
 end /- namespace -/ sch --------------------------------------------------------
 end /- namespace -/ tts --------------------------------------------------------

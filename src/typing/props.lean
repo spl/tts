@@ -161,8 +161,9 @@ begin
   case typing.app { simp * },
   case typing.lam { simp [exp.lc_body, *], tauto },
   case typing.let_ : v _ ed _ _ _ _ _ _ _ ihd {
+    dsimp at ihd,
     have : lc ed := ihd
-      ((fresh.tagged v).pgenl_length _ _)
+      ((fresh.tagged v).pgenl_length_eq _ _)
       ((fresh.tagged v).pgenl_nodup _ _)
       (λ _, (fresh.tagged v).pgenl_not_mem),
     simp [exp.lc_body, *],
@@ -174,8 +175,8 @@ end
 theorem lc_typ (T : typing Γ e t) : lc t :=
 begin
   induction T,
-  case typing.var : _ x _ _ _ ln_eq lts ls {
-    exact lc_open_typs x.val ls ln_eq lts },
+  case typing.var : _ _ _ _ _ ln_eq lts ls {
+    exact lc_open_typs ls ln_eq lts },
   case typing.app : Γ ef ea t₁ t₂ Tf Ta ihf iha {
     simp at ihf,
     cases ihf with _ lt₂,

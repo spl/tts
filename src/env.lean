@@ -1,5 +1,4 @@
-import data.finmap
-import sch
+import data.finmap sch
 
 namespace tts ------------------------------------------------------------------
 

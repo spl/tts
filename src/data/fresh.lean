@@ -21,25 +21,24 @@ import data.finset
 
 variables {α : Type*}
 
-/-- Atom generator with proof that the generated atom is fresh for any
-avoidance set. -/
+/-- Fresh atom generator -/
 structure fresh (α : Type*) :=
+/- Generate an atom from an avoidance set -/
 (gen : finset α → α)
+/- The atom is fresh. -/
 (gen_not_mem : ∀ (s : finset α), gen s ∉ s)
 
 namespace fresh
-
-section decidable_eq_α
 variables [decidable_eq α]
 
 /- gen -/
 
 theorem gen_ne_of_mem (F : fresh α) {a} {s : finset α} (h : a ∈ s) : a ≠ F.gen s :=
-λ h', absurd (h' ▸ h : F.gen s ∈ s) (F.gen_not_mem s)
+λ h', F.gen_not_mem s (h' ▸ h : F.gen s ∈ s)
 
 @[simp] theorem gen_not_mem_of_subset (F : fresh α) {s s' : finset α} (h : s ⊆ s') :
   F.gen s' ∉ s :=
-λ h', absurd (finset.subset_iff.mp h h') (F.gen_not_mem s')
+λ h', F.gen_not_mem s' (h h')
 
 theorem gen_not_mem_singleton (F : fresh α) (a : α) :
   F.gen (finset.singleton a) ≠ a :=
@@ -101,7 +100,7 @@ rfl
           (insert (F.gen (F.pgenl s n).2) (F.pgenl s n).2) :=
 by simp [pgenl]
 
-theorem pgenl_length (F : fresh α) (s : finset α) :
+theorem pgenl_length_eq (F : fresh α) (s : finset α) :
   ∀ n, (F.pgenl s n).1.length = n
 | 0     := rfl
 | (n+1) := by simp *
@@ -124,7 +123,7 @@ theorem pgenl_list_subset (F : fresh α) (s : finset α) :
 
 @[simp] theorem gen_pgenl_not_mem (F : fresh α) (s : finset α) (n : ℕ) :
   F.gen (F.pgenl s n).2 ∉ s :=
-mt (λ p, finset.subset_iff.mp (F.pgenl_subset s n) p) (F.gen_not_mem _)
+mt (λ p, F.pgenl_subset s n p) (F.gen_not_mem _)
 
 @[simp] theorem gen_pgenl_not_mem_list (F : fresh α) (s : finset α) (n : ℕ) :
   F.gen (F.pgenl s n).2 ∉ (F.pgenl s n).1 :=
@@ -142,7 +141,7 @@ theorem pgenl_nodup (F : fresh α) (s : finset α) :
 
 @[simp] theorem gen_pgenl_ne_of_mem (F : fresh α) {s : finset α} {a n} (h : a ∈ s) :
   a ≠ F.gen (F.pgenl s n).2 :=
-F.gen_ne_of_mem $ finset.subset_iff.mp (F.pgenl_subset s n) h
+F.gen_ne_of_mem $ F.pgenl_subset s n h
 
 theorem pgenl_not_mem_singleton_self (F : fresh α) (a) (n) :
   a ∉ (F.pgenl (finset.singleton a) n).1 :=
@@ -150,7 +149,7 @@ by induction n; simp *
 
 theorem pgenl_mem_singleton (F : fresh α) {a b n}
   (h : a ∈ (F.pgenl (finset.singleton b) n).1) : a ≠ b :=
-λ h', absurd (by simpa [h'] using h) (F.pgenl_not_mem_singleton_self b n)
+λ h', F.pgenl_not_mem_singleton_self b n (by simpa [h'] using h)
 
 theorem pgenl_mem_union (F : fresh α) {s₁ s₂ : finset α} {n a}
   (h : a ∈ (F.pgenl (s₁ ∪ s₂) n).1) : a ∉ s₁ ∧ a ∉ s₂ :=
@@ -181,9 +180,44 @@ theorem pgenf_not_mem (F : fresh α) (s : finset α) (n : ℕ) :
   F.gen (F.pgenf s n).2 ∉ (F.pgenf s n).1 :=
 F.gen_pgenl_not_mem_list s n
 
-end decidable_eq_α
-
 end fresh
+
+/-- Fresh atom list generator -/
+structure freshL (α : Type*) :=
+/- Generate an atom list from an avoidance set -/
+(gen : finset α → list α)
+/- The list has no duplicates. -/
+(gen_nodup : ∀ (s : finset α), (gen s).nodup)
+/- The list is fresh. -/
+(gen_not_mem : ∀ {s : finset α} {a : α}, a ∈ gen s → a ∉ s)
+
+namespace freshL
+variables [decidable_eq α]
+
+/- gen -/
+
+@[simp] theorem gen_not_mem_of_subset (F : freshL α) {s s' : finset α} (ss : s ⊆ s')
+  {a : α} (h : a ∈ s) : a ∉ F.gen s' :=
+λ h', F.gen_not_mem h' (ss h)
+
+/- pgen -/
+
+/-- Generate a pair of a fresh atom list and a new avoidance set. -/
+def pgen (F : freshL α) (s : finset α) : list α × finset α :=
+let l := F.gen s in ⟨l, l.foldr insert s⟩
+
+theorem pgen_nodup (F : freshL α) (s : finset α) : (F.pgen s).1.nodup :=
+F.gen_nodup s
+
+theorem pgen_not_mem (F : freshL α) :
+  ∀ {s : finset α} {a : α}, a ∈ (F.pgen s).1 → a ∉ s :=
+F.gen_not_mem
+
+theorem pgen_mem_union (F : freshL α) {s₁ s₂ : finset α} {a}
+  (h : a ∈ (F.pgen (s₁ ∪ s₂)).1) : a ∉ s₁ ∧ a ∉ s₂ :=
+finset.not_mem_union.mp $ F.pgen_not_mem h
+
+end freshL
 
 /- infinite nat -/
 
@@ -242,15 +276,46 @@ variables [_root_.decidable_eq α]
 def tags (s : finset (tagged α)) (a : α) : finset ℕ :=
 (s.filter (λ (b : tagged α), a = b.val)).image tag
 
-def fresh (a : α) (s : finset (tagged α)) : tagged α :=
+def fresh (s : finset (tagged α)) (a : α) : tagged α :=
 mk a (tags s a).max_succ
 
-theorem max_succ_tags_not_mem (a : α) (s : finset (tagged α)) : fresh a s ∉ s :=
+theorem fresh_not_mem (s : finset (tagged α)) (a : α) : fresh s a ∉ s :=
 have p : (tags s a).max_succ ∉ tags s a := finset.max_succ_not_mem _,
 by simp [tags] at p; exact λ h, p _ h rfl rfl
 
+theorem fresh_inj (s : finset (tagged α)) : function.injective (fresh s) :=
+λ a₁ a₂ h, by simp [fresh] at h; exact h.1
+
+def freshL (s : finset (tagged α)) : list α → list (tagged α) :=
+list.map (fresh s)
+
+theorem freshL_nodup (s : finset (tagged α)) {l : list α} (nd : l.nodup) : (freshL s l).nodup :=
+list.nodup_map (fresh_inj s) nd
+
+theorem freshL_not_mem {s : finset (tagged α)} :
+  ∀ {l : list α} {a : tagged α}, a ∈ freshL s l → a ∉ s
+| []      a h := by cases h
+| (a'::_) a h := by
+  simp [freshL] at h;
+  cases h;
+  [{subst h}, {rcases h with ⟨a', _, h⟩, induction h}];
+  exact fresh_not_mem s a'
+
 end tagged
 
-/-- A fresh tagged pair generator for a particular value. -/
-protected def fresh.tagged [decidable_eq α] (a : α) : fresh (tagged α) :=
-⟨λ s, tagged.fresh a s, λ s, tagged.max_succ_tags_not_mem a s⟩
+section fresh_tagged
+variables [decidable_eq α] {l : list α}
+
+/-- A fresh tagged pair generator for a particular atom. -/
+protected def fresh.tagged (a : α) : fresh (tagged α) :=
+⟨λ s, tagged.fresh s a, λ s, tagged.fresh_not_mem s a⟩
+
+/-- A fresh tagged list pair generator for a particular list of atoms. -/
+protected def freshL.tagged (nd : l.nodup) : freshL (tagged α) :=
+⟨λ s, tagged.freshL s l, λ s, tagged.freshL_nodup s nd, λ _ _, tagged.freshL_not_mem⟩
+
+theorem freshL.tagged_length_eq (s : finset (tagged α)) (nd : l.nodup) :
+  ((freshL.tagged nd).pgen s).1.length = l.length :=
+by simp [freshL.pgen, freshL.tagged, tagged.freshL]
+
+end fresh_tagged
