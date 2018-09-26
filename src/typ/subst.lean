@@ -1,4 +1,4 @@
-import data.list.extra .fv .lc
+import .fv .lc
 
 local attribute [simp] not_or_distrib and_assoc
 
